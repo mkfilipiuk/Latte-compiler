@@ -1,0 +1,1 @@
+Nie udało mi się dotychczas zbudować rozwiązania na studencie.
