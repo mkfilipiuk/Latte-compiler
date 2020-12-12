@@ -1,25 +1,20 @@
 package compiler.frontend;
 
-import latte.*;
-import java.io.*;
+import compiler.LatteError;
+import latte.PrettyPrinter;
+import latte.latteLexer;
+import latte.latteParser;
 import org.antlr.v4.runtime.*;
-import org.antlr.v4.runtime.atn.*;
-import org.antlr.v4.runtime.dfa.*;
-import java.util.*;
+import org.antlr.v4.runtime.atn.ATNConfigSet;
+import org.antlr.v4.runtime.dfa.DFA;
+
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.util.BitSet;
 
 import static compiler.frontend.SemanticAnalysis.analyse;
-
-class LatteError extends RuntimeException
-{
-    int line;
-    int column;
-    public LatteError(String msg, int l, int c)
-    {
-        super(msg);
-        line = l;
-        column = c;
-    }
-}
 
 class BNFCErrorListener implements ANTLRErrorListener
 {
@@ -85,16 +80,12 @@ public class Compiler
         return ast;
     }
 
-    public static void main(String args[]) throws Exception
-    {
+    public static void main(String[] args) throws Exception {
         latte.Test t = new latte.Test(args);
-        try
-        {
+        try {
             var AST = t.parse();
             analyse(AST);
-        }
-        catch(LatteError e)
-        {
+        } catch (LatteError e) {
             System.err.println("At line " + e.line + ", column " + e.column + " :");
             System.err.println("     " + e.getMessage());
             System.exit(1);

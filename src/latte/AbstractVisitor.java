@@ -1,22 +1,50 @@
 package latte;
 
-/** BNFC-Generated Abstract Visitor */
+/**
+ * BNFC-Generated Abstract Visitor
+ */
 
-public class AbstractVisitor<R,A> implements AllVisitor<R,A> {
+public class AbstractVisitor<R, A> implements AllVisitor<R, A> {
     /* Prog */
-    public R visit(latte.Absyn.Program p, A arg) { return visitDefault(p, arg); }
+    public R visit(latte.Absyn.Program p, A arg) {
+        return visitDefault(p, arg);
+    }
+
     public R visitDefault(latte.Absyn.Prog p, A arg) {
-      throw new IllegalArgumentException(this.getClass().getName() + ": " + p);
+        throw new IllegalArgumentException(this.getClass().getName() + ": " + p);
     }
+
+    /* IdentP */
+    public R visit(latte.Absyn.IdentPos p, A arg) {
+        return visitDefault(p, arg);
+    }
+
+    public R visitDefault(latte.Absyn.IdentP p, A arg) {
+        throw new IllegalArgumentException(this.getClass().getName() + ": " + p);
+    }
+
     /* Funct */
-    public R visit(latte.Absyn.Function p, A arg) { return visitDefault(p, arg); }
-    public R visitDefault(latte.Absyn.Funct p, A arg) {
-      throw new IllegalArgumentException(this.getClass().getName() + ": " + p);
+    public R visit(latte.Absyn.Function p, A arg) {
+        return visitDefault(p, arg);
     }
+
+    public R visitDefault(latte.Absyn.Funct p, A arg) {
+        throw new IllegalArgumentException(this.getClass().getName() + ": " + p);
+    }
+
     /* TopDef */
-    public R visit(latte.Absyn.FnDef p, A arg) { return visitDefault(p, arg); }
-    public R visit(latte.Absyn.ClassDef p, A arg) { return visitDefault(p, arg); }
-    public R visit(latte.Absyn.ClassDefExtend p, A arg) { return visitDefault(p, arg); }
+    public R visit(latte.Absyn.FnDef p, A arg) {
+        return visitDefault(p, arg);
+    }
+
+    public R visit(latte.Absyn.ClassDef p, A arg) {
+        return visitDefault(p, arg);
+    }
+
+    public R visit(latte.Absyn.ClassDefExtend p, A arg) {
+        return visitDefault(p, arg);
+    }
+
     public R visitDefault(latte.Absyn.TopDef p, A arg) {
       throw new IllegalArgumentException(this.getClass().getName() + ": " + p);
     }

@@ -17,17 +17,21 @@ prog returns [ latte.Absyn.Prog result ]
   : p_1_1=listTopDef
     { $result = new latte.Absyn.Program($p_1_1.result); }
   ;
+identP returns [ latte.Absyn.IdentP result ]
+  : p_1_1=IDENT
+    { $result = new latte.Absyn.IdentPos($p_1_1.getText()); }
+  ;
 funct returns [ latte.Absyn.Funct result ]
-  : p_1_1=type p_1_2=IDENT Surrogate_id_SYMB_0 p_1_4=listArg Surrogate_id_SYMB_1 p_1_6=block
-    { $result = new latte.Absyn.Function($p_1_1.result,$p_1_2.getText(),$p_1_4.result,$p_1_6.result); }
+  : p_1_1=type p_1_2=identP Surrogate_id_SYMB_0 p_1_4=listArg Surrogate_id_SYMB_1 p_1_6=block
+    { $result = new latte.Absyn.Function($p_1_1.result,$p_1_2.result,$p_1_4.result,$p_1_6.result); }
   ;
 topDef returns [ latte.Absyn.TopDef result ]
   : p_1_1=funct
     { $result = new latte.Absyn.FnDef($p_1_1.result); }
-  | Surrogate_id_SYMB_29 p_2_2=IDENT p_2_3=clsBlock
-    { $result = new latte.Absyn.ClassDef($p_2_2.getText(),$p_2_3.result); }
-  | Surrogate_id_SYMB_29 p_3_2=IDENT Surrogate_id_SYMB_31 p_3_4=IDENT p_3_5=clsBlock
-    { $result = new latte.Absyn.ClassDefExtend($p_3_2.getText(),$p_3_4.getText(),$p_3_5.result); }
+  | Surrogate_id_SYMB_29 p_2_2=identP p_2_3=clsBlock
+    { $result = new latte.Absyn.ClassDef($p_2_2.result,$p_2_3.result); }
+  | Surrogate_id_SYMB_29 p_3_2=identP Surrogate_id_SYMB_31 p_3_4=identP p_3_5=clsBlock
+    { $result = new latte.Absyn.ClassDefExtend($p_3_2.result,$p_3_4.result,$p_3_5.result); }
   ;
 listTopDef returns [ latte.Absyn.ListTopDef result ]
   : p_1_1=topDef
@@ -36,8 +40,8 @@ listTopDef returns [ latte.Absyn.ListTopDef result ]
     { $result = $p_2_2.result; $result.addFirst($p_2_1.result); }
   ;
 arg returns [ latte.Absyn.Arg result ]
-  : p_1_1=type p_1_2=IDENT
-    { $result = new latte.Absyn.Argument($p_1_1.result,$p_1_2.getText()); }
+  : p_1_1=type p_1_2=identP
+    { $result = new latte.Absyn.Argument($p_1_1.result,$p_1_2.result); }
   ;
 listArg returns [ latte.Absyn.ListArg result ]
   :  /* empty */
@@ -68,8 +72,8 @@ clsMethod returns [ latte.Absyn.ClsMethod result ]
     { $result = new latte.Absyn.ClassMethod($p_1_1.result); }
   ;
 clsAttr returns [ latte.Absyn.ClsAttr result ]
-  : p_1_1=type p_1_2=IDENT Surrogate_id_SYMB_5
-    { $result = new latte.Absyn.ClassAttribute($p_1_1.result,$p_1_2.getText()); }
+  : p_1_1=type p_1_2=identP Surrogate_id_SYMB_5
+    { $result = new latte.Absyn.ClassAttribute($p_1_1.result,$p_1_2.result); }
   ;
 block returns [ latte.Absyn.Block result ]
   : Surrogate_id_SYMB_3 p_1_2=listStmt Surrogate_id_SYMB_4
@@ -88,16 +92,16 @@ stmt returns [ latte.Absyn.Stmt result ]
     { $result = new latte.Absyn.BStmt($p_2_1.result); }
   | p_3_1=type p_3_2=listItem Surrogate_id_SYMB_5
     { $result = new latte.Absyn.Decl($p_3_1.result,$p_3_2.result); }
-  | p_4_1=IDENT Surrogate_id_SYMB_6 p_4_3=expr Surrogate_id_SYMB_5
-    { $result = new latte.Absyn.Ass($p_4_1.getText(),$p_4_3.result); }
-  | p_5_1=IDENT Surrogate_id_SYMB_7 p_5_3=expr Surrogate_id_SYMB_8 Surrogate_id_SYMB_6 p_5_6=expr Surrogate_id_SYMB_5
-    { $result = new latte.Absyn.AssArr($p_5_1.getText(),$p_5_3.result,$p_5_6.result); }
-  | p_6_1=expr6 Surrogate_id_SYMB_9 p_6_3=IDENT Surrogate_id_SYMB_6 p_6_5=expr Surrogate_id_SYMB_5
-    { $result = new latte.Absyn.AssAttr($p_6_1.result,$p_6_3.getText(),$p_6_5.result); }
-  | p_7_1=IDENT Surrogate_id_SYMB_10 Surrogate_id_SYMB_5
-    { $result = new latte.Absyn.Incr($p_7_1.getText()); }
-  | p_8_1=IDENT Surrogate_id_SYMB_11 Surrogate_id_SYMB_5
-    { $result = new latte.Absyn.Decr($p_8_1.getText()); }
+  | p_4_1=identP Surrogate_id_SYMB_6 p_4_3=expr Surrogate_id_SYMB_5
+    { $result = new latte.Absyn.Ass($p_4_1.result,$p_4_3.result); }
+  | p_5_1=identP Surrogate_id_SYMB_7 p_5_3=expr Surrogate_id_SYMB_8 Surrogate_id_SYMB_6 p_5_6=expr Surrogate_id_SYMB_5
+    { $result = new latte.Absyn.AssArr($p_5_1.result,$p_5_3.result,$p_5_6.result); }
+  | p_6_1=expr6 Surrogate_id_SYMB_9 p_6_3=identP Surrogate_id_SYMB_6 p_6_5=expr Surrogate_id_SYMB_5
+    { $result = new latte.Absyn.AssAttr($p_6_1.result,$p_6_3.result,$p_6_5.result); }
+  | p_7_1=identP Surrogate_id_SYMB_10 Surrogate_id_SYMB_5
+    { $result = new latte.Absyn.Incr($p_7_1.result); }
+  | p_8_1=identP Surrogate_id_SYMB_11 Surrogate_id_SYMB_5
+    { $result = new latte.Absyn.Decr($p_8_1.result); }
   | Surrogate_id_SYMB_37 p_9_2=expr Surrogate_id_SYMB_5
     { $result = new latte.Absyn.Ret($p_9_2.result); }
   | Surrogate_id_SYMB_37 Surrogate_id_SYMB_5
@@ -114,10 +118,10 @@ stmt returns [ latte.Absyn.Stmt result ]
     { $result = new latte.Absyn.SExp($p_15_1.result); }
   ;
 item returns [ latte.Absyn.Item result ]
-  : p_1_1=IDENT
-    { $result = new latte.Absyn.NoInit($p_1_1.getText()); }
-  | p_2_1=IDENT Surrogate_id_SYMB_6 p_2_3=expr
-    { $result = new latte.Absyn.Init($p_2_1.getText(),$p_2_3.result); }
+  : p_1_1=identP
+    { $result = new latte.Absyn.NoInit($p_1_1.result); }
+  | p_2_1=identP Surrogate_id_SYMB_6 p_2_3=expr
+    { $result = new latte.Absyn.Init($p_2_1.result,$p_2_3.result); }
   ;
 listItem returns [ latte.Absyn.ListItem result ]
   : p_1_1=item
@@ -136,8 +140,8 @@ primitiveType returns [ latte.Absyn.PrimitiveType result ]
     { $result = new latte.Absyn.Void(); }
   ;
 classType returns [ latte.Absyn.ClassType result ]
-  : p_1_1=IDENT
-    { $result = new latte.Absyn.ClassT($p_1_1.getText()); }
+  : p_1_1=identP
+    { $result = new latte.Absyn.ClassT($p_1_1.result); }
   ;
 type returns [ latte.Absyn.Type result ]
   : p_1_1=type Surrogate_id_SYMB_13
@@ -158,24 +162,24 @@ listType returns [ latte.Absyn.ListType result ]
 expr6 returns [ latte.Absyn.Expr result ]
   : Surrogate_id_SYMB_36 p_1_2=type Surrogate_id_SYMB_7 p_1_4=expr Surrogate_id_SYMB_8
     { $result = new latte.Absyn.ENewArray($p_1_2.result,$p_1_4.result); }
-  | Surrogate_id_SYMB_36 p_2_2=IDENT
-    { $result = new latte.Absyn.ENewObject($p_2_2.getText()); }
-  | p_3_1=IDENT
-    { $result = new latte.Absyn.EVar($p_3_1.getText()); }
-  | p_4_1=IDENT Surrogate_id_SYMB_7 p_4_3=expr Surrogate_id_SYMB_8
-    { $result = new latte.Absyn.EArrayElem($p_4_1.getText(),$p_4_3.result); }
+  | Surrogate_id_SYMB_36 p_2_2=identP
+    { $result = new latte.Absyn.ENewObject($p_2_2.result); }
+  | p_3_1=identP
+    { $result = new latte.Absyn.EVar($p_3_1.result); }
+  | p_4_1=identP Surrogate_id_SYMB_7 p_4_3=expr Surrogate_id_SYMB_8
+    { $result = new latte.Absyn.EArrayElem($p_4_1.result,$p_4_3.result); }
   | p_5_1=INTEGER
     { $result = new latte.Absyn.ELitInt(Integer.parseInt($p_5_1.getText())); }
   | Surrogate_id_SYMB_39
     { $result = new latte.Absyn.ELitTrue(); }
   | Surrogate_id_SYMB_32
     { $result = new latte.Absyn.ELitFalse(); }
-  | p_8_1=expr6 Surrogate_id_SYMB_9 p_8_3=IDENT
-    { $result = new latte.Absyn.EAttr($p_8_1.result,$p_8_3.getText()); }
-  | p_9_1=expr6 Surrogate_id_SYMB_9 p_9_3=IDENT Surrogate_id_SYMB_0 p_9_5=listExpr Surrogate_id_SYMB_1
-    { $result = new latte.Absyn.EMethod($p_9_1.result,$p_9_3.getText(),$p_9_5.result); }
-  | p_10_1=IDENT Surrogate_id_SYMB_0 p_10_3=listExpr Surrogate_id_SYMB_1
-    { $result = new latte.Absyn.EApp($p_10_1.getText(),$p_10_3.result); }
+  | p_8_1=expr6 Surrogate_id_SYMB_9 p_8_3=identP
+    { $result = new latte.Absyn.EAttr($p_8_1.result,$p_8_3.result); }
+  | p_9_1=expr6 Surrogate_id_SYMB_9 p_9_3=identP Surrogate_id_SYMB_0 p_9_5=listExpr Surrogate_id_SYMB_1
+    { $result = new latte.Absyn.EMethod($p_9_1.result,$p_9_3.result,$p_9_5.result); }
+  | p_10_1=identP Surrogate_id_SYMB_0 p_10_3=listExpr Surrogate_id_SYMB_1
+    { $result = new latte.Absyn.EApp($p_10_1.result,$p_10_3.result); }
   | Surrogate_id_SYMB_0 p_11_2=type Surrogate_id_SYMB_1 p_11_4=expr6
     { $result = new latte.Absyn.ECast($p_11_2.result,$p_11_4.result); }
   | p_12_1=STRING

@@ -10,26 +10,30 @@ package latte;
 
 public class VisitSkel
 {
-  public class ProgVisitor<R,A> implements latte.Absyn.Prog.Visitor<R,A>
-  {
-    public R visit(latte.Absyn.Program p, A arg)
-    { /* Code for Program goes here */
-      for (latte.Absyn.TopDef x: p.listtopdef_) {
-        x.accept(new TopDefVisitor<R,A>(), arg);
-      }
-      return null;
+    public class ProgVisitor<R, A> implements latte.Absyn.Prog.Visitor<R, A> {
+        public R visit(latte.Absyn.Program p, A arg) { /* Code for Program goes here */
+            for (latte.Absyn.TopDef x : p.listtopdef_) {
+                x.accept(new TopDefVisitor<R, A>(), arg);
+            }
+            return null;
+        }
     }
-  }
-  public class FunctVisitor<R,A> implements latte.Absyn.Funct.Visitor<R,A>
-  {
-    public R visit(latte.Absyn.Function p, A arg)
-    { /* Code for Function goes here */
-      p.type_.accept(new TypeVisitor<R,A>(), arg);
-      //p.ident_;
-      for (latte.Absyn.Arg x: p.listarg_) {
-        x.accept(new ArgVisitor<R,A>(), arg);
-      }
-      p.block_.accept(new BlockVisitor<R,A>(), arg);
+
+    public class IdentPVisitor<R, A> implements latte.Absyn.IdentP.Visitor<R, A> {
+        public R visit(latte.Absyn.IdentPos p, A arg) { /* Code for IdentPos goes here */
+            //p.ident_;
+            return null;
+        }
+    }
+
+    public class FunctVisitor<R, A> implements latte.Absyn.Funct.Visitor<R, A> {
+        public R visit(latte.Absyn.Function p, A arg) { /* Code for Function goes here */
+            p.type_.accept(new TypeVisitor<R, A>(), arg);
+            p.identp_.accept(new IdentPVisitor<R, A>(), arg);
+            for (latte.Absyn.Arg x : p.listarg_) {
+                x.accept(new ArgVisitor<R, A>(), arg);
+            }
+            p.block_.accept(new BlockVisitor<R, A>(), arg);
       return null;
     }
   }
@@ -42,24 +46,23 @@ public class VisitSkel
     }
     public R visit(latte.Absyn.ClassDef p, A arg)
     { /* Code for ClassDef goes here */
-      //p.ident_;
-      p.clsblock_.accept(new ClsBlockVisitor<R,A>(), arg);
+        p.identp_.accept(new IdentPVisitor<R, A>(), arg);
+        p.clsblock_.accept(new ClsBlockVisitor<R, A>(), arg);
       return null;
     }
-    public R visit(latte.Absyn.ClassDefExtend p, A arg)
-    { /* Code for ClassDefExtend goes here */
-      //p.ident_1;
-      //p.ident_2;
-      p.clsblock_.accept(new ClsBlockVisitor<R,A>(), arg);
-      return null;
+    public R visit(latte.Absyn.ClassDefExtend p, A arg) { /* Code for ClassDefExtend goes here */
+        p.identp_1.accept(new IdentPVisitor<R, A>(), arg);
+        p.identp_2.accept(new IdentPVisitor<R, A>(), arg);
+        p.clsblock_.accept(new ClsBlockVisitor<R, A>(), arg);
+        return null;
     }
   }
   public class ArgVisitor<R,A> implements latte.Absyn.Arg.Visitor<R,A>
   {
     public R visit(latte.Absyn.Argument p, A arg)
     { /* Code for Argument goes here */
-      p.type_.accept(new TypeVisitor<R,A>(), arg);
-      //p.ident_;
+        p.type_.accept(new TypeVisitor<R, A>(), arg);
+        p.identp_.accept(new IdentPVisitor<R, A>(), arg);
       return null;
     }
   }
@@ -98,8 +101,8 @@ public class VisitSkel
   {
     public R visit(latte.Absyn.ClassAttribute p, A arg)
     { /* Code for ClassAttribute goes here */
-      p.type_.accept(new TypeVisitor<R,A>(), arg);
-      //p.ident_;
+        p.type_.accept(new TypeVisitor<R, A>(), arg);
+        p.identp_.accept(new IdentPVisitor<R, A>(), arg);
       return null;
     }
   }
@@ -134,32 +137,32 @@ public class VisitSkel
     }
     public R visit(latte.Absyn.Ass p, A arg)
     { /* Code for Ass goes here */
-      //p.ident_;
-      p.expr_.accept(new ExprVisitor<R,A>(), arg);
+        p.identp_.accept(new IdentPVisitor<R, A>(), arg);
+        p.expr_.accept(new ExprVisitor<R, A>(), arg);
       return null;
     }
     public R visit(latte.Absyn.AssArr p, A arg)
     { /* Code for AssArr goes here */
-      //p.ident_;
-      p.expr_1.accept(new ExprVisitor<R,A>(), arg);
+        p.identp_.accept(new IdentPVisitor<R, A>(), arg);
+        p.expr_1.accept(new ExprVisitor<R, A>(), arg);
       p.expr_2.accept(new ExprVisitor<R,A>(), arg);
       return null;
     }
     public R visit(latte.Absyn.AssAttr p, A arg)
     { /* Code for AssAttr goes here */
-      p.expr_1.accept(new ExprVisitor<R,A>(), arg);
-      //p.ident_;
-      p.expr_2.accept(new ExprVisitor<R,A>(), arg);
+        p.expr_1.accept(new ExprVisitor<R, A>(), arg);
+        p.identp_.accept(new IdentPVisitor<R, A>(), arg);
+        p.expr_2.accept(new ExprVisitor<R, A>(), arg);
       return null;
     }
     public R visit(latte.Absyn.Incr p, A arg)
     { /* Code for Incr goes here */
-      //p.ident_;
+        p.identp_.accept(new IdentPVisitor<R, A>(), arg);
       return null;
     }
     public R visit(latte.Absyn.Decr p, A arg)
     { /* Code for Decr goes here */
-      //p.ident_;
+        p.identp_.accept(new IdentPVisitor<R, A>(), arg);
       return null;
     }
     public R visit(latte.Absyn.Ret p, A arg)
@@ -207,13 +210,13 @@ public class VisitSkel
   {
     public R visit(latte.Absyn.NoInit p, A arg)
     { /* Code for NoInit goes here */
-      //p.ident_;
+        p.identp_.accept(new IdentPVisitor<R, A>(), arg);
       return null;
     }
     public R visit(latte.Absyn.Init p, A arg)
     { /* Code for Init goes here */
-      //p.ident_;
-      p.expr_.accept(new ExprVisitor<R,A>(), arg);
+        p.identp_.accept(new IdentPVisitor<R, A>(), arg);
+        p.expr_.accept(new ExprVisitor<R, A>(), arg);
       return null;
     }
   }
@@ -240,7 +243,7 @@ public class VisitSkel
   {
     public R visit(latte.Absyn.ClassT p, A arg)
     { /* Code for ClassT goes here */
-      //p.ident_;
+        p.identp_.accept(new IdentPVisitor<R, A>(), arg);
       return null;
     }
   }
@@ -280,18 +283,18 @@ public class VisitSkel
     }
     public R visit(latte.Absyn.ENewObject p, A arg)
     { /* Code for ENewObject goes here */
-      //p.ident_;
+        p.identp_.accept(new IdentPVisitor<R, A>(), arg);
       return null;
     }
     public R visit(latte.Absyn.EVar p, A arg)
     { /* Code for EVar goes here */
-      //p.ident_;
+        p.identp_.accept(new IdentPVisitor<R, A>(), arg);
       return null;
     }
     public R visit(latte.Absyn.EArrayElem p, A arg)
     { /* Code for EArrayElem goes here */
-      //p.ident_;
-      p.expr_.accept(new ExprVisitor<R,A>(), arg);
+        p.identp_.accept(new IdentPVisitor<R, A>(), arg);
+        p.expr_.accept(new ExprVisitor<R, A>(), arg);
       return null;
     }
     public R visit(latte.Absyn.ELitInt p, A arg)
@@ -309,14 +312,14 @@ public class VisitSkel
     }
     public R visit(latte.Absyn.EAttr p, A arg)
     { /* Code for EAttr goes here */
-      p.expr_.accept(new ExprVisitor<R,A>(), arg);
-      //p.ident_;
+        p.expr_.accept(new ExprVisitor<R, A>(), arg);
+        p.identp_.accept(new IdentPVisitor<R, A>(), arg);
       return null;
     }
     public R visit(latte.Absyn.EMethod p, A arg)
     { /* Code for EMethod goes here */
-      p.expr_.accept(new ExprVisitor<R,A>(), arg);
-      //p.ident_;
+        p.expr_.accept(new ExprVisitor<R, A>(), arg);
+        p.identp_.accept(new IdentPVisitor<R, A>(), arg);
       for (latte.Absyn.Expr x: p.listexpr_) {
         x.accept(new ExprVisitor<R,A>(), arg);
       }
@@ -324,7 +327,7 @@ public class VisitSkel
     }
     public R visit(latte.Absyn.EApp p, A arg)
     { /* Code for EApp goes here */
-      //p.ident_;
+        p.identp_.accept(new IdentPVisitor<R, A>(), arg);
       for (latte.Absyn.Expr x: p.listexpr_) {
         x.accept(new ExprVisitor<R,A>(), arg);
       }
