@@ -4,23 +4,26 @@ entrypoints Prog ;
 
 Program.    Prog ::= [TopDef] ;
 
+-- Copied from https://github.com/jlysiak/mimuw-mrjp-latte-2018/blob/master/src/grammar/Latte.cf
+IdentPos.	IdentP		::= Ident ;
+
 -- functions ----------------------------------------------
 
-Function.   Funct ::= Type Ident "(" [Arg] ")" Block ;
+Function.   Funct ::= Type IdentP "(" [Arg] ")" Block ;
 
 FnDef.      TopDef ::= Funct ;
 
 separator nonempty TopDef "" ;
 
-Argument.   Arg ::= Type Ident;
+Argument.   Arg ::= Type IdentP;
 
 separator   Arg "," ;
 
 -- classes -------------------------------------------------
 
-ClassDef.         TopDef ::= "class" Ident ClsBlock ;
+ClassDef.         TopDef ::= "class" IdentP ClsBlock ;
 
-ClassDefExtend.   TopDef ::= "class" Ident "extends" Ident ClsBlock ;
+ClassDefExtend.   TopDef ::= "class" IdentP "extends" IdentP ClsBlock ;
 
 ClassBlock.       ClsBlock ::= "{" [ClsDef] "}" ;
 
@@ -32,7 +35,7 @@ ClassDefMethod.   ClsDef ::= ClsMethod ;
 
 ClassMethod.      ClsMethod ::= Funct ;
 
-ClassAttribute.   ClsAttr ::= Type Ident ";" ;
+ClassAttribute.   ClsAttr ::= Type IdentP ";" ;
 
 -- statements ----------------------------------------------
 
@@ -46,21 +49,21 @@ BStmt.                  Stmt ::= Block ;
 
 Decl.                   Stmt ::= Type [Item] ";" ;
 
-NoInit.                 Item ::= Ident ; 
+NoInit.                 Item ::= IdentP ;
 
-Init.                   Item ::= Ident "=" Expr ;
+Init.                   Item ::= IdentP "=" Expr ;
 
 separator nonempty Item "," ;
 
-Ass.       Stmt ::= Ident "=" Expr  ";" ;
+Ass.       Stmt ::= IdentP "=" Expr  ";" ;
 
-AssArr.    Stmt ::= Ident "[" Expr "]" "=" Expr  ";" ;
+AssArr.    Stmt ::= IdentP "[" Expr "]" "=" Expr  ";" ;
 
-AssAttr.   Stmt ::= Expr6 "." Ident "=" Expr  ";" ;
+AssAttr.   Stmt ::= Expr6 "." IdentP "=" Expr  ";" ;
 
-Incr.      Stmt ::= Ident "++"  ";" ;
+Incr.      Stmt ::= IdentP "++"  ";" ;
 
-Decr.      Stmt ::= Ident "--"  ";" ;
+Decr.      Stmt ::= IdentP "--"  ";" ;
 
 Ret.       Stmt ::= "return" Expr ";" ;
 
@@ -86,7 +89,7 @@ Bool.         PrimitiveType ::= "boolean" ;
 
 Void.         PrimitiveType ::= "void" ;
 
-ClassT.       ClassType ::= Ident ;
+ClassT.       ClassType ::= IdentP ;
 
 ArrayT.       Type ::= Type "[]" ;
 
@@ -102,11 +105,11 @@ separator  Type "," ;
 
 ENewArray.  Expr6 ::= "new" Type "[" Expr "]" ;
 
-ENewObject. Expr6 ::= "new" Ident ;
+ENewObject. Expr6 ::= "new" IdentP ;
 
-EVar.       Expr6 ::= Ident ;
+EVar.       Expr6 ::= IdentP ;
 
-EArrayElem. Expr6 ::= Ident "[" Expr "]";
+EArrayElem. Expr6 ::= IdentP "[" Expr "]";
 
 ELitInt.    Expr6 ::= Integer ;
 
@@ -114,11 +117,11 @@ ELitTrue.   Expr6 ::= "true" ;
 
 ELitFalse.  Expr6 ::= "false" ;
 
-EAttr.      Expr6 ::= Expr6 "." Ident ;
+EAttr.      Expr6 ::= Expr6 "." IdentP ;
 
-EMethod.    Expr6 ::= Expr6 "." Ident "(" [Expr] ")" ;
+EMethod.    Expr6 ::= Expr6 "." IdentP "(" [Expr] ")" ;
 
-EApp.       Expr6 ::= Ident "(" [Expr] ")" ;
+EApp.       Expr6 ::= IdentP "(" [Expr] ")" ;
 
 ECast.      Expr6 ::= "(" Type ")" Expr6 ;
 
