@@ -1,0 +1,179 @@
+-- programs ------------------------------------------------
+
+entrypoints Prog ;
+
+Program.    Prog ::= [TopDef] ;
+
+-- Copied from https://github.com/jlysiak/mimuw-mrjp-latte-2018/blob/master/src/grammar/Latte.cf
+IdentPos.	IdentP		::= Ident ;
+
+-- functions ----------------------------------------------
+
+Function.   Funct ::= Type IdentP "(" [Arg] ")" Block ;
+
+FnDef.      TopDef ::= Funct ;
+
+separator nonempty TopDef "" ;
+
+Argument.   Arg ::= Type IdentP;
+
+separator   Arg "," ;
+
+-- classes -------------------------------------------------
+
+ClassDef.         TopDef ::= "class" IdentP ClsBlock ;
+
+ClassDefExtend.   TopDef ::= "class" IdentP "extends" IdentP ClsBlock ;
+
+ClassBlock.       ClsBlock ::= "{" [ClsDef] "}" ;
+
+separator         ClsDef "" ;
+
+ClassDefAttr.     ClsDef ::= ClsAttr ;
+
+ClassDefMethod.   ClsDef ::= ClsMethod ;
+
+ClassMethod.      ClsMethod ::= Funct ;
+
+ClassAttribute.   ClsAttr ::= Type IdentP ";" ;
+
+-- statements ----------------------------------------------
+
+BlockOfStatements.      Block ::= "{" [Stmt] "}" ;
+
+separator               Stmt "" ;
+
+Empty.                  Stmt ::= ";" ;
+
+BStmt.                  Stmt ::= Block ;
+
+Decl.                   Stmt ::= Type [Item] ";" ;
+
+NoInit.                 Item ::= IdentP ;
+
+Init.                   Item ::= IdentP "=" Expr ;
+
+separator nonempty Item "," ;
+
+Ass.       Stmt ::= IdentP "=" Expr  ";" ;
+
+AssArr.    Stmt ::= IdentP "[" Expr "]" "=" Expr  ";" ;
+
+AssAttr.   Stmt ::= Expr6 "." IdentP "=" Expr  ";" ;
+
+Incr.      Stmt ::= IdentP "++"  ";" ;
+
+Decr.      Stmt ::= IdentP "--"  ";" ;
+
+Ret.       Stmt ::= "return" Expr ";" ;
+
+VRet.      Stmt ::= "return" ";" ;
+
+Cond.      Stmt ::= "if" "(" Expr ")" Stmt  ;
+
+CondElse.  Stmt ::= "if" "(" Expr ")" Stmt "else" Stmt  ;
+
+While.     Stmt ::= "while" "(" Expr ")" Stmt ;
+
+For.       Stmt ::= "for" "(" Arg ":" Expr ")" Stmt ;
+
+SExp.      Stmt ::= Expr  ";" ;
+
+-- Types ---------------------------------------------------
+
+Int.          PrimitiveType ::= "int" ;
+
+Str.          PrimitiveType ::= "string" ;
+
+Bool.         PrimitiveType ::= "boolean" ;
+
+Void.         PrimitiveType ::= "void" ;
+
+ClassT.       ClassType ::= IdentP ;
+
+ArrayT.       Type ::= Type "[]" ;
+
+internal Fun. Type ::= Type "(" [Type] ")" ;
+
+Primitive.    Type ::= PrimitiveType ;
+
+Class.        Type ::= ClassType ;
+
+separator  Type "," ;
+
+-- Expressions ---------------------------------------------
+
+ENewArray.  Expr6 ::= "new" Type "[" Expr "]" ;
+
+ENewObject. Expr6 ::= "new" IdentP ;
+
+EVar.       Expr6 ::= IdentP ;
+
+EArrayElem. Expr6 ::= IdentP "[" Expr "]";
+
+ELitInt.    Expr6 ::= Integer ;
+
+ELitTrue.   Expr6 ::= "true" ;
+
+ELitFalse.  Expr6 ::= "false" ;
+
+EAttr.      Expr6 ::= Expr6 "." IdentP ;
+
+EMethod.    Expr6 ::= Expr6 "." IdentP "(" [Expr] ")" ;
+
+EApp.       Expr6 ::= IdentP "(" [Expr] ")" ;
+
+ECast.      Expr6 ::= "(" Type ")" Expr6 ;
+
+EString.    Expr6 ::= String ;
+
+Neg.        Expr5 ::= "-" Expr6 ;
+
+Not.        Expr5 ::= "!" Expr6 ;
+
+EMul.       Expr4 ::= Expr4 MulOp Expr5 ;
+
+EAdd.       Expr3 ::= Expr3 AddOp Expr4 ;
+
+ERel.       Expr2 ::= Expr2 RelOp Expr3 ;
+
+EAnd.       Expr1 ::= Expr2 "&&" Expr1 ;
+
+EOr.        Expr ::= Expr1 "||" Expr ;
+
+coercions   Expr 6 ;
+
+separator   Expr "," ;
+
+-- operators -----------------------------------------------
+
+Plus.      AddOp ::= "+" ;
+
+Minus.     AddOp ::= "-" ;
+
+Times.     MulOp ::= "*" ;
+
+Div.       MulOp ::= "/" ;
+
+Mod.       MulOp ::= "%" ;
+
+LTH.       RelOp ::= "<" ;
+
+LE.        RelOp ::= "<=" ;
+
+GTH.       RelOp ::= ">" ;
+
+GE.        RelOp ::= ">=" ;
+
+EQU.       RelOp ::= "==" ;
+
+NE.        RelOp ::= "!=" ;
+
+-- comments ------------------------------------------------
+
+comment    "#" ;
+
+comment    "//" ;
+
+comment    "/*" "*/" ;
+
