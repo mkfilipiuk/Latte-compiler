@@ -86,9 +86,11 @@ public class Compiler
             var AST = t.parse();
             analyse(AST);
         } catch (LatteError e) {
+            System.err.println("ERROR");
             System.err.println("At line " + e.line + ", column " + e.column + " :");
             System.err.println("     " + e.getMessage());
             System.exit(1);
         }
+        System.err.println("OK");
     }
 }
