@@ -4,13 +4,35 @@ entrypoints Prog ;
 
 Program.    Prog ::= [TopDef] ;
 
-FnDef.      TopDef ::= Type Ident "(" [Arg] ")" Block ;
+-- functions ----------------------------------------------
+
+Function.   Funct ::= Type Ident "(" [Arg] ")" Block ;
+
+FnDef.      TopDef ::= Funct ;
 
 separator nonempty TopDef "" ;
 
 Argument.   Arg ::= Type Ident;
 
 separator   Arg "," ;
+
+-- classes -------------------------------------------------
+
+ClassDef.         TopDef ::= "class" Ident ClsBlock ;
+
+ClassDefExtend.   TopDef ::= "class" Ident "extends" Ident ClsBlock ;
+
+ClassBlock.       ClsBlock ::= "{" [ClsDef] "}" ;
+
+separator         ClsDef "" ;
+
+ClassDefAttr.     ClsDef ::= ClsAttr ;
+
+ClassDefMethod.   ClsDef ::= ClsMethod ;
+
+ClassMethod.      ClsMethod ::= Funct ;
+
+ClassAttribute.   ClsAttr ::= Type Ident ";" ;
 
 -- statements ----------------------------------------------
 
@@ -32,6 +54,10 @@ separator nonempty Item "," ;
 
 Ass.       Stmt ::= Ident "=" Expr  ";" ;
 
+AssArr.    Stmt ::= Ident "[" Expr "]" "=" Expr  ";" ;
+
+AssAttr.   Stmt ::= Expr6 "." Ident "=" Expr  ";" ;
+
 Incr.      Stmt ::= Ident "++"  ";" ;
 
 Decr.      Stmt ::= Ident "--"  ";" ;
@@ -46,53 +72,75 @@ CondElse.  Stmt ::= "if" "(" Expr ")" Stmt "else" Stmt  ;
 
 While.     Stmt ::= "while" "(" Expr ")" Stmt ;
 
+For.       Stmt ::= "for" "(" Arg ":" Expr ")" Stmt ;
+
 SExp.      Stmt ::= Expr  ";" ;
 
 -- Types ---------------------------------------------------
 
-Int.       Type ::= "int" ;
+Int.          PrimitiveType ::= "int" ;
 
-Str.       Type ::= "string" ;
+Str.          PrimitiveType ::= "string" ;
 
-Bool.      Type ::= "boolean" ;
+Bool.         PrimitiveType ::= "boolean" ;
 
-Void.      Type ::= "void" ;
+Void.         PrimitiveType ::= "void" ;
 
-internal   Fun. Type ::= Type "(" [Type] ")" ;
+ClassT.       ClassType ::= Ident ;
+
+ArrayT.       Type ::= Type "[]" ;
+
+internal Fun. Type ::= Type "(" [Type] ")" ;
+
+Primitive.    Type ::= PrimitiveType ;
+
+Class.        Type ::= ClassType ;
 
 separator  Type "," ;
 
 -- Expressions ---------------------------------------------
 
-EVar.      Expr6 ::= Ident ;
+ENewArray.  Expr6 ::= "new" Type "[" Expr "]" ;
 
-ELitInt.   Expr6 ::= Integer ;
+ENewObject. Expr6 ::= "new" Ident ;
 
-ELitTrue.  Expr6 ::= "true" ;
+EVar.       Expr6 ::= Ident ;
 
-ELitFalse. Expr6 ::= "false" ;
+EArrayElem. Expr6 ::= Ident "[" Expr "]";
 
-EApp.      Expr6 ::= Ident "(" [Expr] ")" ;
+ELitInt.    Expr6 ::= Integer ;
 
-EString.   Expr6 ::= String ;
+ELitTrue.   Expr6 ::= "true" ;
 
-Neg.       Expr5 ::= "-" Expr6 ;
+ELitFalse.  Expr6 ::= "false" ;
 
-Not.       Expr5 ::= "!" Expr6 ;
+EAttr.      Expr6 ::= Expr6 "." Ident ;
 
-EMul.      Expr4 ::= Expr4 MulOp Expr5 ;
+EMethod.    Expr6 ::= Expr6 "." Ident "(" [Expr] ")" ;
 
-EAdd.      Expr3 ::= Expr3 AddOp Expr4 ;
+EApp.       Expr6 ::= Ident "(" [Expr] ")" ;
 
-ERel.      Expr2 ::= Expr2 RelOp Expr3 ;
+ECast.      Expr6 ::= "(" Type ")" Expr6 ;
 
-EAnd.      Expr1 ::= Expr2 "&&" Expr1 ;
+EString.    Expr6 ::= String ;
 
-EOr.       Expr ::= Expr1 "||" Expr ;
+Neg.        Expr5 ::= "-" Expr6 ;
 
-coercions  Expr 6 ;
+Not.        Expr5 ::= "!" Expr6 ;
 
-separator  Expr "," ;
+EMul.       Expr4 ::= Expr4 MulOp Expr5 ;
+
+EAdd.       Expr3 ::= Expr3 AddOp Expr4 ;
+
+ERel.       Expr2 ::= Expr2 RelOp Expr3 ;
+
+EAnd.       Expr1 ::= Expr2 "&&" Expr1 ;
+
+EOr.        Expr ::= Expr1 "||" Expr ;
+
+coercions   Expr 6 ;
+
+separator   Expr "," ;
 
 -- operators -----------------------------------------------
 

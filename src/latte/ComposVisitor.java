@@ -4,11 +4,18 @@ package latte;
 
 public class ComposVisitor<A> implements
   latte.Absyn.Prog.Visitor<latte.Absyn.Prog,A>,
+  latte.Absyn.Funct.Visitor<latte.Absyn.Funct,A>,
   latte.Absyn.TopDef.Visitor<latte.Absyn.TopDef,A>,
   latte.Absyn.Arg.Visitor<latte.Absyn.Arg,A>,
+  latte.Absyn.ClsBlock.Visitor<latte.Absyn.ClsBlock,A>,
+  latte.Absyn.ClsDef.Visitor<latte.Absyn.ClsDef,A>,
+  latte.Absyn.ClsMethod.Visitor<latte.Absyn.ClsMethod,A>,
+  latte.Absyn.ClsAttr.Visitor<latte.Absyn.ClsAttr,A>,
   latte.Absyn.Block.Visitor<latte.Absyn.Block,A>,
   latte.Absyn.Stmt.Visitor<latte.Absyn.Stmt,A>,
   latte.Absyn.Item.Visitor<latte.Absyn.Item,A>,
+  latte.Absyn.PrimitiveType.Visitor<latte.Absyn.PrimitiveType,A>,
+  latte.Absyn.ClassType.Visitor<latte.Absyn.ClassType,A>,
   latte.Absyn.Type.Visitor<latte.Absyn.Type,A>,
   latte.Absyn.Expr.Visitor<latte.Absyn.Expr,A>,
   latte.Absyn.AddOp.Visitor<latte.Absyn.AddOp,A>,
@@ -26,8 +33,8 @@ public class ComposVisitor<A> implements
       return new latte.Absyn.Program(listtopdef_);
     }
 
-    /* TopDef */
-    public latte.Absyn.TopDef visit(latte.Absyn.FnDef p, A arg)
+    /* Funct */
+    public latte.Absyn.Funct visit(latte.Absyn.Function p, A arg)
     {
       latte.Absyn.Type type_ = p.type_.accept(this, arg);
       String ident_ = p.ident_;
@@ -37,7 +44,27 @@ public class ComposVisitor<A> implements
         listarg_.add(x.accept(this,arg));
       }
       latte.Absyn.Block block_ = p.block_.accept(this, arg);
-      return new latte.Absyn.FnDef(type_, ident_, listarg_, block_);
+      return new latte.Absyn.Function(type_, ident_, listarg_, block_);
+    }
+
+    /* TopDef */
+    public latte.Absyn.TopDef visit(latte.Absyn.FnDef p, A arg)
+    {
+      latte.Absyn.Funct funct_ = p.funct_.accept(this, arg);
+      return new latte.Absyn.FnDef(funct_);
+    }
+    public latte.Absyn.TopDef visit(latte.Absyn.ClassDef p, A arg)
+    {
+      String ident_ = p.ident_;
+      latte.Absyn.ClsBlock clsblock_ = p.clsblock_.accept(this, arg);
+      return new latte.Absyn.ClassDef(ident_, clsblock_);
+    }
+    public latte.Absyn.TopDef visit(latte.Absyn.ClassDefExtend p, A arg)
+    {
+      String ident_1 = p.ident_1;
+      String ident_2 = p.ident_2;
+      latte.Absyn.ClsBlock clsblock_ = p.clsblock_.accept(this, arg);
+      return new latte.Absyn.ClassDefExtend(ident_1, ident_2, clsblock_);
     }
 
     /* Arg */
@@ -46,6 +73,44 @@ public class ComposVisitor<A> implements
       latte.Absyn.Type type_ = p.type_.accept(this, arg);
       String ident_ = p.ident_;
       return new latte.Absyn.Argument(type_, ident_);
+    }
+
+    /* ClsBlock */
+    public latte.Absyn.ClsBlock visit(latte.Absyn.ClassBlock p, A arg)
+    {
+      latte.Absyn.ListClsDef listclsdef_ = new latte.Absyn.ListClsDef();
+      for (latte.Absyn.ClsDef x : p.listclsdef_)
+      {
+        listclsdef_.add(x.accept(this,arg));
+      }
+      return new latte.Absyn.ClassBlock(listclsdef_);
+    }
+
+    /* ClsDef */
+    public latte.Absyn.ClsDef visit(latte.Absyn.ClassDefAttr p, A arg)
+    {
+      latte.Absyn.ClsAttr clsattr_ = p.clsattr_.accept(this, arg);
+      return new latte.Absyn.ClassDefAttr(clsattr_);
+    }
+    public latte.Absyn.ClsDef visit(latte.Absyn.ClassDefMethod p, A arg)
+    {
+      latte.Absyn.ClsMethod clsmethod_ = p.clsmethod_.accept(this, arg);
+      return new latte.Absyn.ClassDefMethod(clsmethod_);
+    }
+
+    /* ClsMethod */
+    public latte.Absyn.ClsMethod visit(latte.Absyn.ClassMethod p, A arg)
+    {
+      latte.Absyn.Funct funct_ = p.funct_.accept(this, arg);
+      return new latte.Absyn.ClassMethod(funct_);
+    }
+
+    /* ClsAttr */
+    public latte.Absyn.ClsAttr visit(latte.Absyn.ClassAttribute p, A arg)
+    {
+      latte.Absyn.Type type_ = p.type_.accept(this, arg);
+      String ident_ = p.ident_;
+      return new latte.Absyn.ClassAttribute(type_, ident_);
     }
 
     /* Block */
@@ -85,6 +150,20 @@ public class ComposVisitor<A> implements
       latte.Absyn.Expr expr_ = p.expr_.accept(this, arg);
       return new latte.Absyn.Ass(ident_, expr_);
     }
+    public latte.Absyn.Stmt visit(latte.Absyn.AssArr p, A arg)
+    {
+      String ident_ = p.ident_;
+      latte.Absyn.Expr expr_1 = p.expr_1.accept(this, arg);
+      latte.Absyn.Expr expr_2 = p.expr_2.accept(this, arg);
+      return new latte.Absyn.AssArr(ident_, expr_1, expr_2);
+    }
+    public latte.Absyn.Stmt visit(latte.Absyn.AssAttr p, A arg)
+    {
+      latte.Absyn.Expr expr_1 = p.expr_1.accept(this, arg);
+      String ident_ = p.ident_;
+      latte.Absyn.Expr expr_2 = p.expr_2.accept(this, arg);
+      return new latte.Absyn.AssAttr(expr_1, ident_, expr_2);
+    }
     public latte.Absyn.Stmt visit(latte.Absyn.Incr p, A arg)
     {
       String ident_ = p.ident_;
@@ -123,6 +202,13 @@ public class ComposVisitor<A> implements
       latte.Absyn.Stmt stmt_ = p.stmt_.accept(this, arg);
       return new latte.Absyn.While(expr_, stmt_);
     }
+    public latte.Absyn.Stmt visit(latte.Absyn.For p, A arg)
+    {
+      latte.Absyn.Arg arg_ = p.arg_.accept(this, arg);
+      latte.Absyn.Expr expr_ = p.expr_.accept(this, arg);
+      latte.Absyn.Stmt stmt_ = p.stmt_.accept(this, arg);
+      return new latte.Absyn.For(arg_, expr_, stmt_);
+    }
     public latte.Absyn.Stmt visit(latte.Absyn.SExp p, A arg)
     {
       latte.Absyn.Expr expr_ = p.expr_.accept(this, arg);
@@ -142,22 +228,36 @@ public class ComposVisitor<A> implements
       return new latte.Absyn.Init(ident_, expr_);
     }
 
-    /* Type */
-    public latte.Absyn.Type visit(latte.Absyn.Int p, A arg)
+    /* PrimitiveType */
+    public latte.Absyn.PrimitiveType visit(latte.Absyn.Int p, A arg)
     {
       return new latte.Absyn.Int();
     }
-    public latte.Absyn.Type visit(latte.Absyn.Str p, A arg)
+    public latte.Absyn.PrimitiveType visit(latte.Absyn.Str p, A arg)
     {
       return new latte.Absyn.Str();
     }
-    public latte.Absyn.Type visit(latte.Absyn.Bool p, A arg)
+    public latte.Absyn.PrimitiveType visit(latte.Absyn.Bool p, A arg)
     {
       return new latte.Absyn.Bool();
     }
-    public latte.Absyn.Type visit(latte.Absyn.Void p, A arg)
+    public latte.Absyn.PrimitiveType visit(latte.Absyn.Void p, A arg)
     {
       return new latte.Absyn.Void();
+    }
+
+    /* ClassType */
+    public latte.Absyn.ClassType visit(latte.Absyn.ClassT p, A arg)
+    {
+      String ident_ = p.ident_;
+      return new latte.Absyn.ClassT(ident_);
+    }
+
+    /* Type */
+    public latte.Absyn.Type visit(latte.Absyn.ArrayT p, A arg)
+    {
+      latte.Absyn.Type type_ = p.type_.accept(this, arg);
+      return new latte.Absyn.ArrayT(type_);
     }
     public latte.Absyn.Type visit(latte.Absyn.Fun p, A arg)
     {
@@ -169,12 +269,39 @@ public class ComposVisitor<A> implements
       }
       return new latte.Absyn.Fun(type_, listtype_);
     }
+    public latte.Absyn.Type visit(latte.Absyn.Primitive p, A arg)
+    {
+      latte.Absyn.PrimitiveType primitivetype_ = p.primitivetype_.accept(this, arg);
+      return new latte.Absyn.Primitive(primitivetype_);
+    }
+    public latte.Absyn.Type visit(latte.Absyn.Class p, A arg)
+    {
+      latte.Absyn.ClassType classtype_ = p.classtype_.accept(this, arg);
+      return new latte.Absyn.Class(classtype_);
+    }
 
     /* Expr */
+    public latte.Absyn.Expr visit(latte.Absyn.ENewArray p, A arg)
+    {
+      latte.Absyn.Type type_ = p.type_.accept(this, arg);
+      latte.Absyn.Expr expr_ = p.expr_.accept(this, arg);
+      return new latte.Absyn.ENewArray(type_, expr_);
+    }
+    public latte.Absyn.Expr visit(latte.Absyn.ENewObject p, A arg)
+    {
+      String ident_ = p.ident_;
+      return new latte.Absyn.ENewObject(ident_);
+    }
     public latte.Absyn.Expr visit(latte.Absyn.EVar p, A arg)
     {
       String ident_ = p.ident_;
       return new latte.Absyn.EVar(ident_);
+    }
+    public latte.Absyn.Expr visit(latte.Absyn.EArrayElem p, A arg)
+    {
+      String ident_ = p.ident_;
+      latte.Absyn.Expr expr_ = p.expr_.accept(this, arg);
+      return new latte.Absyn.EArrayElem(ident_, expr_);
     }
     public latte.Absyn.Expr visit(latte.Absyn.ELitInt p, A arg)
     {
@@ -189,6 +316,23 @@ public class ComposVisitor<A> implements
     {
       return new latte.Absyn.ELitFalse();
     }
+    public latte.Absyn.Expr visit(latte.Absyn.EAttr p, A arg)
+    {
+      latte.Absyn.Expr expr_ = p.expr_.accept(this, arg);
+      String ident_ = p.ident_;
+      return new latte.Absyn.EAttr(expr_, ident_);
+    }
+    public latte.Absyn.Expr visit(latte.Absyn.EMethod p, A arg)
+    {
+      latte.Absyn.Expr expr_ = p.expr_.accept(this, arg);
+      String ident_ = p.ident_;
+      latte.Absyn.ListExpr listexpr_ = new latte.Absyn.ListExpr();
+      for (latte.Absyn.Expr x : p.listexpr_)
+      {
+        listexpr_.add(x.accept(this,arg));
+      }
+      return new latte.Absyn.EMethod(expr_, ident_, listexpr_);
+    }
     public latte.Absyn.Expr visit(latte.Absyn.EApp p, A arg)
     {
       String ident_ = p.ident_;
@@ -198,6 +342,12 @@ public class ComposVisitor<A> implements
         listexpr_.add(x.accept(this,arg));
       }
       return new latte.Absyn.EApp(ident_, listexpr_);
+    }
+    public latte.Absyn.Expr visit(latte.Absyn.ECast p, A arg)
+    {
+      latte.Absyn.Type type_ = p.type_.accept(this, arg);
+      latte.Absyn.Expr expr_ = p.expr_.accept(this, arg);
+      return new latte.Absyn.ECast(type_, expr_);
     }
     public latte.Absyn.Expr visit(latte.Absyn.EString p, A arg)
     {
