@@ -1,0 +1,7 @@
+// Adding non-integers.
+
+int main () {
+ int x;
+  x = "foo"+"bar";
+ return 0 ;
+}

@@ -81,13 +81,13 @@ public class Compiler
     }
 
     public static void main(String[] args) throws Exception {
-        latte.Test t = new latte.Test(args);
+        var t = new Compiler(args);
         try {
             var AST = t.parse();
             analyse(AST);
         } catch (LatteError e) {
             System.err.println("ERROR");
-            System.err.println("At line " + e.line + ", column " + e.column + " :");
+            System.err.println("At line " + e.line + ":");
             System.err.println("     " + e.getMessage());
             System.exit(1);
         }

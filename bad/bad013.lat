@@ -1,0 +1,6 @@
+// Adding string to int
+int main() {
+      string x ;
+      x = "pi" + 1 ;
+      return 0 ;
+}

@@ -1,0 +1,4 @@
+// Wrong type of returned value
+int main() {
+     return true;
+}

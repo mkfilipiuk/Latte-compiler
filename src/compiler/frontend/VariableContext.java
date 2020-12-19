@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 public class VariableContext {
     public ArrayList<VariableBlockContext> stack;
+    public String currentFunction;
 
     public VariableContext() {
         stack = new ArrayList<>();
