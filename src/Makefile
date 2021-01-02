@@ -1,14 +1,14 @@
 JAVAC=javac
-JAVAC_FLAGS=-sourcepath .
+JAVAC_FLAGS=-sourcepath . -cp "../lib/antlr-4.9-complete.jar"
 JAVA=java
 JAVA_FLAGS=
 PARSER=${JAVA} ${JAVA_FLAGS} org.antlr.v4.Tool
 PARSER_FLAGS=-lib latte -package latte
 LEXER=${JAVA} ${JAVA_FLAGS} org.antlr.v4.Tool
 LEXER_FLAGS=-lib latte -package latte
-all : test
+all : compiler
 
-test : absyn latte/latteLexer.class latte/PrettyPrinter.class latte/Test.class latte/VisitSkel.class latte/ComposVisitor.class latte/AbstractVisitor.class latte/FoldVisitor.class latte/AllVisitor.class latte/latteParser.class latte/Test.class
+compiler : absyn latte/latteLexer.class latte/PrettyPrinter.class latte/Test.class latte/VisitSkel.class latte/ComposVisitor.class latte/AbstractVisitor.class latte/FoldVisitor.class latte/AllVisitor.class latte/latteParser.class latte/Test.class compiler/frontend/CheckReturns.class compiler/frontend/CheckVariables.class compiler/frontend/Compiler.class compiler/frontend/SemanticAnalysis.class compiler/frontend/VariableBlockContext.class compiler/frontend/VariableContext.class compiler/LatteError.class
 
 .PHONY : absyn
 
@@ -31,7 +31,7 @@ latte/latteParser.class : latte/latteParser.java
 latte/PrettyPrinter.class : latte/PrettyPrinter.java
 
 clean :
-	rm -f latte/Absyn/*.class latte/*.class
+	rm -f latte/Absyn/*.class latte/*.class compiler/*.class compiler/frontend/*.class 
 
 distclean : vclean
 

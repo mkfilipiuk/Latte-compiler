@@ -2,7 +2,7 @@
 
 DESTINATION_FILE="${1%.*}.ll"
 COMPILED_FILE="${1%.*}.bc"
-cat $1 | java -cp 'lib/antlr-4.9-complete.jar:.' src.LLVMCompilerMain 2> /dev/null | tee $DESTINATION_FILE
-
-llvm-as -o $COMPILED_FILE $DESTINATION_FILE
-llvm-link -o $COMPILED_FILE $COMPILED_FILE lib/runtime.bc
+cat $1 | java -cp "src:lib/antlr-4.9-complete.jar" compiler.frontend.Compiler 
+#| tee $DESTINATION_FILE
+#llvm-as -o $COMPILED_FILE $DESTINATION_FILE
+#llvm-link -o $COMPILED_FILE $COMPILED_FILE lib/runtime.bc
