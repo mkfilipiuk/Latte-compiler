@@ -198,7 +198,7 @@ public class LLVMAST {
             var v = LLVMContext.getNewVariable();
             doneBlock.add(new SimpleInstruction(v, "phi i1 [ 1, %" + labelDoubleSuccess + "], [ 0, %" + labelFailure + "]", "i1"));
             arg.add(doneBlock);
-            return null;
+            return v;
         }
 
         @Override
@@ -226,7 +226,7 @@ public class LLVMAST {
             var v = LLVMContext.getNewVariable();
             doneBlock.add(new SimpleInstruction(v, "phi i1 [ 1, %" + labelSuccess + "], [ 0, %" + labelDoubleFailure + "]", "i1"));
             arg.add(doneBlock);
-            return null;
+            return v;
         }
     };
     private final Block.Visitor<Void, SimpleBlock> blockVisitor = new Block.Visitor<Void, SimpleBlock>() {
