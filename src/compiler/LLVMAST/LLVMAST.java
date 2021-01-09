@@ -151,9 +151,9 @@ public class LLVMAST {
                 arg.add(new SimpleInstruction(malloc, "call i8* @malloc( i32 " + totalLength2 + ")", "i8*"));
                 arg.add(new SimpleInstruction(null, "store i8 0, i8* " + malloc, null));
                 var firstString = LLVMContext.getNewVariable();
-                arg.add(new SimpleInstruction(firstString, "call i8* @strcat( i8* " + malloc + ", i8*" + x1 + ")", "i8*"));
+                arg.add(new SimpleInstruction(firstString, "call i8* @strcat( i8* " + malloc + ", i8* " + x1 + ")", "i8*"));
                 var secondString = LLVMContext.getNewVariable();
-                arg.add(new SimpleInstruction(secondString, "call i8* @strcat( i8* " + firstString + ", i8*" + x2 + ")", "i8*"));
+                arg.add(new SimpleInstruction(secondString, "call i8* @strcat( i8* " + firstString + ", i8* " + x2 + ")", "i8*"));
                 return secondString;
             } else {
                 var v = LLVMContext.getNewVariable();
@@ -486,6 +486,8 @@ public class LLVMAST {
                     }
                 }
             }
+            var variablesToBeUpdated = new HashMap<String, String>();
+
             for (int i = 0; i < LLVMContext.contextStack.stack.size(); ++i) {
                 for (var v : LLVMContext.contextStack.stack.get(i).variableToRegister.keySet()) {
                     var registerBefore = LLVMContext.contextStack.stack.get(i).variableToRegister.get(v);
@@ -495,6 +497,7 @@ public class LLVMAST {
                         var varType = LLVMContext.getType(v);
                         registerAfter = "%" + (Integer.parseInt(registerAfter.substring(1)) + counter);
                         phiBlock.add(new SimpleInstruction(newVar, "phi " + varType + " [ " + registerBefore + ", %" + labelEntry + "], [ " + registerAfter /*TODO trzeba dodać i wziąć jeszcze cond pod uwagę*/ + ", %" + labelBodyEnd + "]", varType));
+                        variablesToBeUpdated.put(v, newVar);
                         LLVMContext.updateVariable(v, newVar);
                     }
                 }
@@ -522,6 +525,10 @@ public class LLVMAST {
 
             var endBlock = new SimpleBlock(labelEnd);
             arg.add(endBlock);
+
+            for (var x : variablesToBeUpdated.keySet()) {
+                LLVMContext.updateVariable(x, variablesToBeUpdated.get(x));
+            }
 
             return null;
         }
