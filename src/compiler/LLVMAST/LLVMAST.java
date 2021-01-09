@@ -101,7 +101,7 @@ public class LLVMAST {
         public String visit(Not p, SimpleBlock arg) {
             var x = p.expr_.accept(exprVisitor, arg);
             var v = LLVMContext.getNewVariable();
-            arg.add(new SimpleInstruction(v, "mul i1 -1, " + x, "i1"));
+            arg.add(new SimpleInstruction(v, "add i1 -1, " + x, "i1"));
             return v;
         }
 
