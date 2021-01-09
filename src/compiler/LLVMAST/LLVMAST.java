@@ -153,7 +153,7 @@ public class LLVMAST {
                 var firstString = LLVMContext.getNewVariable();
                 arg.add(new SimpleInstruction(firstString, "call i8* @strcat( i8* " + malloc + ", i8* " + x1 + ")", "i8*"));
                 var secondString = LLVMContext.getNewVariable();
-                arg.add(new SimpleInstruction(secondString, "call i8* @strcat( i8* " + firstString + ", i8* " + x2 + ")", "i8*"));
+                arg.add(new SimpleInstruction(secondString, "call i8* @strcat( i8* " + malloc + ", i8* " + x2 + ")", "i8*"));
                 return secondString;
             } else {
                 var v = LLVMContext.getNewVariable();
