@@ -671,6 +671,7 @@ public class LLVMAST {
         stringBuilder.append("declare i8* @malloc(i32)\n");
         stringBuilder.append("declare i32 @strlen(i8*)\n");
         stringBuilder.append("declare i8* @strcat(i8*, i8*)\n");
+        stringBuilder.append("@empty_string   = internal constant [1 x i8] c\"\\00\"");
 
 
         stringBuilder.append(LLVMContext.generateStrings());

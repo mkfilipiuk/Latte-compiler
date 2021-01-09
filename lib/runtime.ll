@@ -3,7 +3,6 @@
 @d   = internal constant [3 x i8] c"%d\00"
 @s   = internal constant [3 x i8] c"%s\00"
 @sxyz   = internal constant [3 x i8] c"%s\00"
-@empty_string   = internal constant [1 x i8] c"\00"
 @error_message   = internal constant [14 x i8] c"runtime error\00"
 
 declare i32 @printf(i8*, ...)
