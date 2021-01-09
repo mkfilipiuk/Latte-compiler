@@ -661,6 +661,7 @@ public class LLVMAST {
         stringBuilder.append("declare i32 @readInt_function()\n");
         stringBuilder.append("declare i8* @readString_function()\n");
         stringBuilder.append("declare void @error_function()\n");
+        stringBuilder.append("declare i8* @malloc(i32)\n");
 
         stringBuilder.append(LLVMContext.generateStrings());
 
