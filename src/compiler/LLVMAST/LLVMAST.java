@@ -4,6 +4,8 @@ import latte.Absyn.*;
 
 import java.lang.Void;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class LLVMAST {
@@ -441,50 +443,86 @@ public class LLVMAST {
         @Override
         public Void visit(While p, SimpleBlock arg) {
             var labelEntry = LLVMContext.getNewLabel("while_entry");
+            var labelPhi = LLVMContext.getNewLabel("while_phi");
             var labelCond = LLVMContext.getNewLabel("while_condition");
             var labelCondEnd = LLVMContext.getNewLabel("while_condition_end");
             var labelBody = LLVMContext.getNewLabel("while_body");
             var labelBodyEnd = LLVMContext.getNewLabel("while_body_end");
+            var labelEnd = LLVMContext.getNewLabel("while_end");
 
-
-            var expr = p.expr_.accept(exprVisitor, arg);
-
-            var labelIfBody = LLVMContext.getNewLabel("if_body");
-            var labelIfBodyEnd = LLVMContext.getNewLabel("if_body_end");
-            var labelFi = LLVMContext.getNewLabel("fi");
-            var contextBefore = LLVMContext.contextStack.clone();
             arg.add(new SimpleInstruction(null, "br label %" + labelEntry, null));
 
-            var ifBlock = new SimpleBlock(labelEntry);
-            ifBlock.add(new SimpleInstruction(null, "br i1 " + expr + ", label %" + labelIfBody + ", label %" + labelFi, null));
-            arg.add(ifBlock);
+            var entryBlock = new SimpleBlock(labelEntry);
+            entryBlock.add(new SimpleInstruction(null, "br label %" + labelPhi, null));
+            arg.add(entryBlock);
 
-            var ifBodyBlock = new SimpleBlock(labelIfBody);
-            p.stmt_.accept(stmtVisitor, ifBodyBlock);
-            ifBodyBlock.add(new SimpleInstruction(null, "br label %" + labelIfBodyEnd, null));
-            arg.add(ifBodyBlock);
+            var phiBlock = new SimpleBlock(labelPhi);
 
+            Map<String, String> stringsToBeDeclared = new HashMap<>();
+            for (var k : LLVMContext.stringsToBeDeclared.keySet()) {
+                stringsToBeDeclared.put(k, LLVMContext.stringsToBeDeclared.get(k));
+            }
+            LLVMContextStack contextStack = LLVMContext.contextStack.clone();
+            int registerCounter = LLVMContext.registerCounter;
+            int stringCounter = LLVMContext.stringCounter;
+            int labelCounter = LLVMContext.labelCounter;
+            p.expr_.accept(exprVisitor, new SimpleBlock());
+            p.stmt_.accept(stmtVisitor, new SimpleBlock());
 
-            var ifBodyEndBlock = new SimpleBlock(labelIfBodyEnd);
-            ifBodyEndBlock.add(new SimpleInstruction(null, "br label %" + labelFi, null));
-            arg.add(ifBodyEndBlock);
+            var afterBodyContext = LLVMContext.contextStack;
+            LLVMContext.contextStack = contextStack;
+            LLVMContext.registerCounter = registerCounter;
+            LLVMContext.stringCounter = stringCounter;
+            LLVMContext.labelCounter = labelCounter;
+            LLVMContext.stringsToBeDeclared = stringsToBeDeclared;
 
-            var fiBody = new SimpleBlock(labelFi);
-
-            for (int i = 0; i < contextBefore.stack.size(); ++i) {
-                for (var v : contextBefore.stack.get(i).variableToRegister.keySet()) {
-                    var registerBefore = contextBefore.stack.get(i).variableToRegister.get(v);
-                    var registerAfter = LLVMContext.contextStack.stack.get(i).variableToRegister.get(v);
+            int counter = 0;
+            for (int i = 0; i < LLVMContext.contextStack.stack.size(); ++i) {
+                for (var v : LLVMContext.contextStack.stack.get(i).variableToRegister.keySet()) {
+                    var registerBefore = LLVMContext.contextStack.stack.get(i).variableToRegister.get(v);
+                    var registerAfter = afterBodyContext.stack.get(i).variableToRegister.get(v);
+                    if (!registerAfter.equals(registerBefore)) {
+                        counter++;
+                    }
+                }
+            }
+            for (int i = 0; i < LLVMContext.contextStack.stack.size(); ++i) {
+                for (var v : LLVMContext.contextStack.stack.get(i).variableToRegister.keySet()) {
+                    var registerBefore = LLVMContext.contextStack.stack.get(i).variableToRegister.get(v);
+                    var registerAfter = afterBodyContext.stack.get(i).variableToRegister.get(v);
                     if (!registerAfter.equals(registerBefore)) {
                         var newVar = LLVMContext.getNewVariable();
                         var varType = LLVMContext.getType(v);
-                        fiBody.add(new SimpleInstruction(newVar, "phi " + varType + " [ " + registerBefore + ", %" + labelEntry + "], [ " + registerAfter + ", %" + labelIfBodyEnd + "]", varType));
+                        registerAfter = "%" + (Integer.parseInt(registerAfter.substring(1)) + counter);
+                        phiBlock.add(new SimpleInstruction(newVar, "phi " + varType + " [ " + registerBefore + ", %" + labelEntry + "], [ " + registerAfter /*TODO trzeba dodać i wziąć jeszcze cond pod uwagę*/ + ", %" + labelBodyEnd + "]", varType));
                         LLVMContext.updateVariable(v, newVar);
                     }
                 }
             }
+            phiBlock.add(new SimpleInstruction(null, "br label %" + labelCond, null));
+            arg.add(phiBlock);
 
-            arg.add(fiBody);
+            var condBlock = new SimpleBlock(labelCond);
+            var v = p.expr_.accept(exprVisitor, condBlock);
+            condBlock.add(new SimpleInstruction(null, "br label %" + labelCondEnd, null));
+            arg.add(condBlock);
+
+            var condEndBlock = new SimpleBlock(labelCondEnd);
+            condEndBlock.add(new SimpleInstruction(null, "br i1 " + v + ", label %" + labelBody + ", label %" + labelEnd, null));
+            arg.add(condEndBlock);
+
+            var bodyBlock = new SimpleBlock(labelBody);
+            p.stmt_.accept(stmtVisitor, bodyBlock);
+            bodyBlock.add(new SimpleInstruction(null, "br label %" + labelBodyEnd, null));
+            arg.add(bodyBlock);
+
+            var bodyEndBlock = new SimpleBlock(labelBodyEnd);
+            bodyEndBlock.add(new SimpleInstruction(null, "br label %" + labelPhi, null));
+            arg.add(bodyEndBlock);
+
+            var endBlock = new SimpleBlock(labelEnd);
+            arg.add(endBlock);
+
             return null;
         }
 
