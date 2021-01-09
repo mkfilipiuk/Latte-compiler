@@ -22,14 +22,14 @@ public class LLVMContext {
     }
 
     public static void addString(String string_) {
-        stringsToBeDeclared.put(string_, Integer.toString(stringCounter));
+        stringsToBeDeclared.put(string_, "_" + stringCounter + "_string");
         stringCounter++;
     }
 
     public static String generateStrings() {
         StringBuilder sb = new StringBuilder();
         for (String s : stringsToBeDeclared.keySet()) {
-            sb.append(String.format("@%s = private unnamed_addr constant [%d x i8] c\"%s\\00\"", "_" + stringsToBeDeclared.get(s) + "_string", s.length() + 1, s));
+            sb.append(String.format("@%s = private unnamed_addr constant [%d x i8] c\"%s\\00\"", stringsToBeDeclared.get(s), s.length() + 1, s));
             sb.append("\n");
         }
         return sb.toString();

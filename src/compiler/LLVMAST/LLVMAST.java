@@ -155,7 +155,11 @@ public class LLVMAST {
                 return secondString;
             } else {
                 var v = LLVMContext.getNewVariable();
-                arg.add(new SimpleInstruction(v, "add i32 " + x1 + ", " + x2, "i32"));
+                if (p.addop_ instanceof Plus) {
+                    arg.add(new SimpleInstruction(v, "add i32 " + x1 + ", " + x2, "i32"));
+                } else {
+                    arg.add(new SimpleInstruction(v, "sub i32 " + x1 + ", " + x2, "i32"));
+                }
                 return v;
             }
         }
@@ -322,12 +326,14 @@ public class LLVMAST {
         public Void visit(Ret p, SimpleBlock arg) {
             var e = p.expr_.accept(exprVisitor, arg);
             arg.add(new SimpleInstruction(null, "ret " + p.expr_.type.toLLVM() + " " + e, p.expr_.type.toLLVM()));
+            LLVMContext.registerCounter++;
             return null;
         }
 
         @Override
         public Void visit(VRet p, SimpleBlock arg) {
             arg.add(new SimpleInstruction(null, "ret void", null));
+            LLVMContext.registerCounter++;
             return null;
         }
 
@@ -434,6 +440,51 @@ public class LLVMAST {
 
         @Override
         public Void visit(While p, SimpleBlock arg) {
+            var labelEntry = LLVMContext.getNewLabel("while_entry");
+            var labelCond = LLVMContext.getNewLabel("while_condition");
+            var labelCondEnd = LLVMContext.getNewLabel("while_condition_end");
+            var labelBody = LLVMContext.getNewLabel("while_body");
+            var labelBodyEnd = LLVMContext.getNewLabel("while_body_end");
+
+
+            var expr = p.expr_.accept(exprVisitor, arg);
+
+            var labelIfBody = LLVMContext.getNewLabel("if_body");
+            var labelIfBodyEnd = LLVMContext.getNewLabel("if_body_end");
+            var labelFi = LLVMContext.getNewLabel("fi");
+            var contextBefore = LLVMContext.contextStack.clone();
+            arg.add(new SimpleInstruction(null, "br label %" + labelEntry, null));
+
+            var ifBlock = new SimpleBlock(labelEntry);
+            ifBlock.add(new SimpleInstruction(null, "br i1 " + expr + ", label %" + labelIfBody + ", label %" + labelFi, null));
+            arg.add(ifBlock);
+
+            var ifBodyBlock = new SimpleBlock(labelIfBody);
+            p.stmt_.accept(stmtVisitor, ifBodyBlock);
+            ifBodyBlock.add(new SimpleInstruction(null, "br label %" + labelIfBodyEnd, null));
+            arg.add(ifBodyBlock);
+
+
+            var ifBodyEndBlock = new SimpleBlock(labelIfBodyEnd);
+            ifBodyEndBlock.add(new SimpleInstruction(null, "br label %" + labelFi, null));
+            arg.add(ifBodyEndBlock);
+
+            var fiBody = new SimpleBlock(labelFi);
+
+            for (int i = 0; i < contextBefore.stack.size(); ++i) {
+                for (var v : contextBefore.stack.get(i).variableToRegister.keySet()) {
+                    var registerBefore = contextBefore.stack.get(i).variableToRegister.get(v);
+                    var registerAfter = LLVMContext.contextStack.stack.get(i).variableToRegister.get(v);
+                    if (!registerAfter.equals(registerBefore)) {
+                        var newVar = LLVMContext.getNewVariable();
+                        var varType = LLVMContext.getType(v);
+                        fiBody.add(new SimpleInstruction(newVar, "phi " + varType + " [ " + registerBefore + ", %" + labelEntry + "], [ " + registerAfter + ", %" + labelIfBodyEnd + "]", varType));
+                        LLVMContext.updateVariable(v, newVar);
+                    }
+                }
+            }
+
+            arg.add(fiBody);
             return null;
         }
 
