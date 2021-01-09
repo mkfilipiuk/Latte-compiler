@@ -618,6 +618,12 @@ public class LLVMAST {
     public String toLLVMIR() {
         StringBuilder stringBuilder = new StringBuilder();
 
+        stringBuilder.append("declare void @printInt_function(i32)\n");
+        stringBuilder.append("declare void @printString_function(i8*)\n");
+        stringBuilder.append("declare i32 @readInt_function()\n");
+        stringBuilder.append("declare i8* @readString_function()\n");
+        stringBuilder.append("declare void @error_function()\n");
+
         stringBuilder.append(LLVMContext.generateStrings());
 
         for (var b : listOfBlocks) {
