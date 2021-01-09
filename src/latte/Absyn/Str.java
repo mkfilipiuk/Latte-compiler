@@ -17,7 +17,7 @@ public class Str extends PrimitiveType {
 
     @Override
     public String getDefaultLLVMValue() {
-        return "@empty_string";
+        return "getelementptr [1 x i8], [1 x i8]* @empty_string, i32 0, i32 0";
     }
 
     public boolean equals(java.lang.Object o) {
