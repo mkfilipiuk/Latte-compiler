@@ -4,7 +4,12 @@ public class ERel  extends Expr {
   public final Expr expr_1, expr_2;
   public final RelOp relop_;
   public int line_num, col_num, offset;
-  public ERel(Expr p1, RelOp p2, Expr p3) { expr_1 = p1; relop_ = p2; expr_2 = p3; }
+  public ERel(Expr p1, RelOp p2, Expr p3) {
+      expr_1 = p1;
+      relop_ = p2;
+      expr_2 = p3;
+      type = new Primitive(new Bool());
+  }
 
   public <R,A> R accept(latte.Absyn.Expr.Visitor<R,A> v, A arg) { return v.visit(this, arg); }
 

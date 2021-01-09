@@ -5,6 +5,7 @@ import latte.Absyn.*;
 import org.antlr.v4.runtime.misc.Pair;
 
 import java.lang.Void;
+import java.util.HashSet;
 
 public class CheckVariables {
 
@@ -30,7 +31,8 @@ public class CheckVariables {
             if (arg.get(varName) == null) {
                 throw new LatteError(String.format("The variable %s doesn't exists", varName), p.line_num, p.col_num);
             }
-            return arg.get(varName);
+            p.type = arg.get(varName);
+            return p.type;
         }
 
         @Override
@@ -100,6 +102,7 @@ public class CheckVariables {
                     throw new LatteError(String.format("The function %s got an argument of a wrong type.\nExpected %s, got %s", varName, expectedType.toString(), argType.toString()), p.line_num, p.col_num);
                 }
             }
+            p.type = fun.type_;
             return fun.type_;
         }
 
@@ -150,15 +153,29 @@ public class CheckVariables {
         public Type visit(EAdd p, VariableContext arg) {
             var type1 = p.expr_1.accept(exprVisitor, arg);
             var type2 = p.expr_2.accept(exprVisitor, arg);
-            if (!type1.equals(new Primitive(new Int())) && !type1.equals(new Primitive(new Str()))) {
-                throw new LatteError(String.format("Both expressions needs to be ints or strings to be added.\nThe first argument is %s", type1.toString()), p.line_num, p.col_num);
+            if (p.addop_ instanceof Plus) {
+                if (!type1.equals(new Primitive(new Int())) && !type1.equals(new Primitive(new Str()))) {
+                    throw new LatteError(String.format("Both expressions needs to be ints or strings to be added.\nThe first argument is %s", type1.toString()), p.line_num, p.col_num);
+                }
+                if (!type2.equals(new Primitive(new Int())) && !type2.equals(new Primitive(new Str()))) {
+                    throw new LatteError(String.format("Both expressions needs to be ints or strings to be added.\nThe second argument is %s", type2.toString()), p.line_num, p.col_num);
+                }
+                if (!type2.equals(type1)) {
+                    throw new LatteError(String.format("Both expressions needs to be of the same type to be added.\nGot %s and %s", type1.toString(), type2.toString()), p.line_num, p.col_num);
+                }
             }
-            if (!type2.equals(new Primitive(new Int())) && !type2.equals(new Primitive(new Str()))) {
-                throw new LatteError(String.format("Both expressions needs to be ints or strings to be added.\nThe second argument is %s", type2.toString()), p.line_num, p.col_num);
+            if (p.addop_ instanceof Minus) {
+                if (!type1.equals(new Primitive(new Int()))) {
+                    throw new LatteError(String.format("Both expressions needs to be ints to be subtracted.\nThe first argument is %s", type1.toString()), p.line_num, p.col_num);
+                }
+                if (!type2.equals(new Primitive(new Int()))) {
+                    throw new LatteError(String.format("Both expressions needs to be ints to be subtracted.\nThe second argument is %s", type2.toString()), p.line_num, p.col_num);
+                }
+                if (!type2.equals(type1)) {
+                    throw new LatteError(String.format("Both expressions needs to be of the same type to be subtracted.\nGot %s and %s", type1.toString(), type2.toString()), p.line_num, p.col_num);
+                }
             }
-            if (!type2.equals(type1)) {
-                throw new LatteError(String.format("Both expressions needs to be of the same type to be added.\nGot %s and %s", type1.toString(), type2.toString()), p.line_num, p.col_num);
-            }
+            p.type = type1;
             return type1;
         }
 
@@ -166,14 +183,19 @@ public class CheckVariables {
         public Type visit(ERel p, VariableContext arg) {
             var type1 = p.expr_1.accept(exprVisitor, arg);
             var type2 = p.expr_2.accept(exprVisitor, arg);
-            if (!type1.equals(new Primitive(new Int())) && !type1.equals(new Primitive(new Bool()))) {
-                throw new LatteError(String.format("Both expressions needs to be ints or Booleans to be compared.\nThe first argument is %s", type1.toString()), p.line_num, p.col_num);
+            var legalTypes = new HashSet<Type>() {
+            };
+            legalTypes.add(new Primitive(new Int()));
+            legalTypes.add(new Primitive(new Bool()));
+            legalTypes.add(new Primitive(new Str()));
+            if (!legalTypes.contains(type1)) {
+                throw new LatteError(String.format("Both expressions needs to be ints, or Booleans, or strings to be compared.\nThe first argument is %s", type1.toString()), p.line_num, p.col_num);
             }
-            if (!type2.equals(new Primitive(new Int())) && !type1.equals(new Primitive(new Bool()))) {
-                throw new LatteError(String.format("Both expressions needs to be ints or Booleans to be compared.\nThe second argument is %s", type2.toString()), p.line_num, p.col_num);
+            if (!legalTypes.contains(type2)) {
+                throw new LatteError(String.format("Both expressions needs to be ints, or Booleans, or strings to be compared.\nThe second argument is %s", type2.toString()), p.line_num, p.col_num);
             }
             if (!type2.equals(type1)) {
-                throw new LatteError(String.format("Both expressions needs to be of the same type to be compared.\nThe first is %s and the second is %s", type1.toString(), type2.toString()), p.line_num, p.col_num);
+                throw new LatteError(String.format("Both expressions needs to be ints, or Booleans, or strings to be compared.\nThe first is %s and the second is %s", type1.toString(), type2.toString()), p.line_num, p.col_num);
             }
             return new Primitive(new Bool());
         }
@@ -229,6 +251,10 @@ public class CheckVariables {
 
         @Override
         public Void visit(Decl p, VariableContext arg) {
+            if (p.type_.equals(new Primitive(new latte.Absyn.Void()))) {
+                throw new LatteError(String.format("Cannot declare a variable of type void"), p.line_num, p.col_num);
+            }
+
             for (var v : p.listitem_) {
                 var nameTypePair = v.accept(new Item.Visitor<Pair<String, Type>, VariableContext>() {
                     @Override
@@ -461,7 +487,18 @@ public class CheckVariables {
                             p.funct_.accept(new Funct.Visitor<Void, VariableContext>() {
                                 @Override
                                 public Void visit(Function p, VariableContext arg) {
+                                    if (arg.contains(getName(p.identp_))) {
+                                        throw new LatteError(String.format("Function %s has been already declared.", getName(p.identp_)), p.line_num, p.col_num);
+                                    }
                                     arg.add(getName(p.identp_), new Fun(p.type_, getListOfTypes(p)));
+                                    if (getName(p.identp_).equals("main")) {
+                                        if (!((Fun) variables.get("main")).type_.equals(new Primitive(new Int()))) {
+                                            throw new LatteError(String.format("The main function should return integer. Returns %s", ((Fun) variables.get("main")).type_.toString()), p.line_num, p.col_num);
+                                        }
+                                        if (((Fun) variables.get("main")).listtype_.size() > 0) {
+                                            throw new LatteError(String.format("The main function should not take any arguments. ", ((Fun) variables.get("main")).type_.toString()), p.line_num, p.col_num);
+                                        }
+                                    }
                                     return null;
                                 }
                             }, arg);
@@ -498,6 +535,9 @@ public class CheckVariables {
                                                 if (arg.contains(getName(p.identp_))) {
                                                     throw new LatteError(String.format("The variable %s is already declared", getName(p.identp_)), p.line_num, p.col_num);
                                                 }
+                                                if (p.type_.equals(new Primitive(new latte.Absyn.Void()))) {
+                                                    throw new LatteError(String.format("Cannot declare a variable of type void"), p.line_num, p.col_num);
+                                                }
                                                 arg.add(getName(p.identp_), p.type_);
                                                 return null;
                                             }
@@ -529,9 +569,6 @@ public class CheckVariables {
 
         if (variables.get("main") == null) {
             throw new LatteError(String.format("The main function doesn't exists"), 0, 0);
-        }
-        if (!((Fun) variables.get("main")).type_.equals(new Primitive(new Int()))) {
-            throw new LatteError(String.format("The main function should return integer. Returns %s", ((Fun) variables.get("main")).type_.toString()), 0, 0);
         }
     }
 }

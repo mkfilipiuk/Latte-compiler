@@ -4,7 +4,12 @@ public class EMul  extends Expr {
   public final Expr expr_1, expr_2;
   public final MulOp mulop_;
   public int line_num, col_num, offset;
-  public EMul(Expr p1, MulOp p2, Expr p3) { expr_1 = p1; mulop_ = p2; expr_2 = p3; }
+  public EMul(Expr p1, MulOp p2, Expr p3) {
+      expr_1 = p1;
+      mulop_ = p2;
+      expr_2 = p3;
+      type = new Primitive(new Int());
+  }
 
   public <R,A> R accept(latte.Absyn.Expr.Visitor<R,A> v, A arg) { return v.visit(this, arg); }
 

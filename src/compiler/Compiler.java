@@ -1,6 +1,6 @@
-package compiler.frontend;
+package compiler;
 
-import compiler.LatteError;
+import compiler.LLVMAST.LLVMAST;
 import latte.PrettyPrinter;
 import latte.latteLexer;
 import latte.latteParser;
@@ -62,29 +62,14 @@ public class Compiler
         p.addErrorListener(new BNFCErrorListener());
     }
 
-    public latte.Absyn.Prog parse() throws Exception
-    {
-        /* The default parser is the first-defined entry point. */
-        latteParser.Start_ProgContext pc = p.start_Prog();
-        latte.Absyn.Prog ast = pc.result;
-        System.out.println();
-        System.out.println("Parse Succesful!");
-        System.out.println();
-        System.out.println("[Abstract Syntax]");
-        System.out.println();
-        System.out.println(PrettyPrinter.show(ast));
-        System.out.println();
-        System.out.println("[Linearized Tree]");
-        System.out.println();
-        System.out.println(PrettyPrinter.print(ast));
-        return ast;
-    }
-
     public static void main(String[] args) throws Exception {
         var t = new Compiler(args);
+        latte.Absyn.Prog AST = null;
         try {
-            var AST = t.parse();
+            AST = t.parse();
             analyse(AST);
+            var LLVMAST = new LLVMAST(AST);
+            System.out.println(LLVMAST.toLLVMIR());
         } catch (LatteError e) {
             System.err.println("ERROR");
             System.err.println("At line " + e.line + ":");
@@ -92,5 +77,23 @@ public class Compiler
             System.exit(1);
         }
         System.err.println("OK");
+        System.err.println();
+        System.err.println("Parse Succesful!");
+        System.err.println();
+        System.err.println("[Abstract Syntax]");
+        System.err.println();
+        System.err.println(PrettyPrinter.show(AST));
+        System.err.println();
+        System.err.println("[Linearized Tree]");
+        System.err.println();
+        System.err.println(PrettyPrinter.print(AST));
+    }
+
+    public latte.Absyn.Prog parse() throws Exception {
+        /* The default parser is the first-defined entry point. */
+        latteParser.Start_ProgContext pc = p.start_Prog();
+        latte.Absyn.Prog ast = pc.result;
+
+        return ast;
     }
 }
