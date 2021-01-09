@@ -36,7 +36,10 @@ define i8* @readString_function() {
     %res = alloca i8, i8 128
     %t1 = getelementptr [3 x i8],[3 x i8]* @s, i32 0, i32 0
     call i32 (i8*, ...) @scanf(i8* %t1, i8* %res)
-    ret i8* %res
+    %r2 = call i8* @malloc( i32 128)
+    store i8 0, i8* %r2
+    call i8* @strcat( i8* %r2, i8* %res)
+    ret i8* %r2
 }
 
 define void @error_function() {
