@@ -22,8 +22,10 @@ public class LLVMContext {
     }
 
     public static void addString(String string_) {
-        stringsToBeDeclared.put(string_, "_" + stringCounter + "_string");
-        stringCounter++;
+        if (!stringsToBeDeclared.containsKey(string_)) {
+            stringsToBeDeclared.put(string_, "_" + stringCounter + "_string");
+            stringCounter++;
+        }
     }
 
     public static String generateStrings() {
