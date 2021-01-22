@@ -15,7 +15,7 @@ public class ReturnInstruction implements Instruction {
     @Override
     public String toString() {
         if (result == null) {
-            return "ret void";
+            return "\tret void\n";
         }
         return "\tret " + type + " " + result + "\n";
     }

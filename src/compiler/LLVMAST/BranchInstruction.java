@@ -17,7 +17,7 @@ public class BranchInstruction implements Instruction {
 
     @Override
     public String toString() {
-        if (label2 != null) {
+        if (label2 == null) {
             return "\tbr label %" + label + "\n";
         } else {
             return "\tbr i1 " + cond.toString() + ", label %" + label + ", label %" + label2 + "\n";
