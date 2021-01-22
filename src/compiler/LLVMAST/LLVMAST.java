@@ -187,16 +187,20 @@ public class LLVMAST {
         public Register visit(ERel p, SimpleBlock arg) {
             var x1 = p.expr_1.accept(exprVisitor, arg);
             var x2 = p.expr_2.accept(exprVisitor, arg);
-            var v = new Register("i1");
             if (p.expr_1.type.equals(new Primitive(new Str()))) {
                 var args = new ArrayList<Value>();
                 args.add(x1);
                 args.add(x2);
-                arg.add(new CallInstruction(v, "strcmp", "i32", args));
+                var cmpVar = new Register("i32");
+                arg.add(new CallInstruction(cmpVar, "strcmp", "i32", args));
+                var v = new Register("i1");
+                arg.add(new SimpleInstruction(v, "icmp i32 ", cmpVar, new IntValue(0), "i1"));
+                return v;
             } else {
+                var v = new Register("i1");
                 arg.add(new SimpleInstruction(v, "icmp " + p.relop_.toLLVMOperator() + " " + p.expr_1.type.toLLVM(), x1, x2, "i1"));
+                return v;
             }
-            return v;
         }
 
         @Override
