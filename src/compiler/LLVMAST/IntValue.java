@@ -1,9 +1,5 @@
 package compiler.LLVMAST;
 
-import latte.Absyn.Int;
-import latte.Absyn.Primitive;
-import latte.Absyn.Type;
-
 public class IntValue implements Value {
 
     public int value;
@@ -13,8 +9,8 @@ public class IntValue implements Value {
     }
 
     @Override
-    public Type getType() {
-        return new Primitive(new Int());
+    public String getType() {
+        return "i32";
     }
 
     @Override

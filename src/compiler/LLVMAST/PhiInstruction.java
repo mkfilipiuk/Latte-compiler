@@ -18,6 +18,6 @@ public class PhiInstruction implements Instruction {
 
     @Override
     public String toString() {
-        return "\t" + register.toString() + " = " + "phi " + type + "[ " + value1 + ", %" + label1 + " ], [ " + value1 + ", %" + label2 + " ]\n";
+        return "\t" + register.toString() + " = " + "phi " + type + "[ " + value1 + ", %" + label1 + " ], [ " + value2 + ", %" + label2 + " ]\n";
     }
 }

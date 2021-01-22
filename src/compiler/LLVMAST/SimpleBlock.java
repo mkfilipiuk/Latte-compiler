@@ -11,6 +11,7 @@ public class SimpleBlock extends ArrayList<Instruction> implements Instruction {
 
     public SimpleBlock() {
         super();
+        previous = new ArrayList<>();
     }
 
     public SimpleBlock(String labelName) {

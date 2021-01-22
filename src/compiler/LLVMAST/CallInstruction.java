@@ -18,6 +18,10 @@ public class CallInstruction implements Instruction {
 
     @Override
     public String toString() {
-        return "\tcall " + functionType + " @" + functionName + " ( " + String.join(" , ", listOfArguments.stream().map(x -> x.getType().toLLVM() + " " + x.toString()).collect(Collectors.toList())) + " )\n";
+        var call = "call " + functionType + " @" + functionName + " ( " + String.join(" , ", listOfArguments.stream().map(x -> x.getType() + " " + x.toString()).collect(Collectors.toList())) + " )\n";
+        if (resultLHSRegister != null) {
+            return "\t" + resultLHSRegister.toString() + " = " + call;
+        }
+        return "\t" + call;
     }
 }

@@ -54,7 +54,7 @@ public class LLVMContext {
 
     public static void addVariable(Type type, String name, Register register) {
         if (type instanceof Fun) {
-            contextStack.stack.get(contextStack.stack.size() - 1).variableToRegister.put(name, new FunctionRegister(type, name));
+            contextStack.stack.get(contextStack.stack.size() - 1).variableToRegister.put(name, new FunctionRegister(type.toLLVM(), name));
             contextStack.stack.get(contextStack.stack.size() - 1).variableToType.put(name + "_function", type.toLLVM());
         } else {
             contextStack.stack.get(contextStack.stack.size() - 1).variableToRegister.put(name, register);
@@ -66,6 +66,7 @@ public class LLVMContext {
         for (var i = contextStack.stack.size() - 1; i >= 0; --i) {
             if (contextStack.stack.get(i).variableToRegister.containsKey(name)) {
                 contextStack.stack.get(i).variableToRegister.put(name, register);
+                return;
             }
         }
         throw new RuntimeException("Couldn't find variable " + name);

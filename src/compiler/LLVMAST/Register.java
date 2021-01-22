@@ -1,25 +1,24 @@
 package compiler.LLVMAST;
 
-import latte.Absyn.Type;
-
 public class Register implements Value {
     public Integer registerNumber;
-    public Type type;
+    public String type;
 
-    public Register(Type type) {
+    public Register(String type) {
+        registerNumber = LLVMContext.getNewVariable();
         this.type = type;
     }
 
     @Override
     public String toString() {
-        if (registerNumber == null) {
-            registerNumber = LLVMContext.getNewVariable();
-        }
+//        if (registerNumber == null) {
+//            registerNumber = LLVMContext.getNewVariable();
+//        }
         return "%" + registerNumber;
     }
 
     @Override
-    public Type getType() {
+    public String getType() {
         return type;
     }
 }

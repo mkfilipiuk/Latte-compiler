@@ -21,7 +21,7 @@ public class Int extends PrimitiveType {
 
     @Override
     public SimpleInstruction getDefaultLLVMValue(Register register) {
-        return new SimpleInstruction(register, "add", new IntValue(0), new IntValue(0), "i32");
+        return new SimpleInstruction(register, "add i32", new IntValue(0), new IntValue(0), "i32");
     }
 
     public boolean equals(java.lang.Object o) {

@@ -5,9 +5,11 @@ public class ReturnInstruction implements Instruction {
     public Value result;
 
     public ReturnInstruction() {
+        LLVMContext.registerCounter++;
     }
 
     public ReturnInstruction(String type, Value result) {
+        this();
         this.type = type;
         this.result = result;
     }
