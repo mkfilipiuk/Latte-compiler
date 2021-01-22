@@ -5,6 +5,7 @@ import java.util.List;
 public class FunctionBlock extends SimpleBlock {
     public String functionType;
     public List<String> listOfArgumentTypes;
+    public List<Register> listOfArguments;
 
     @Override
     public String toString() {

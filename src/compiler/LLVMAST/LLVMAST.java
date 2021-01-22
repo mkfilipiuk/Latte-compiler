@@ -578,15 +578,19 @@ public class LLVMAST {
                     functionBlock.functionType = p.type_.toLLVM();
 
                     var typeList = new ArrayList<String>();
+                    var argList = new ArrayList<Register>();
                     for (var a : p.listarg_) {
                         typeList.add(a.accept(new Arg.Visitor<String, Void>() {
                             @Override
                             public String visit(Argument p, Void arg) {
-                                LLVMContext.addVariable(p.type_, getName(p.identp_), new Register(p.type_));
+                                var register = new Register(p.type_);
+                                argList.add(register);
+                                LLVMContext.addVariable(p.type_, getName(p.identp_), register);
                                 return p.type_.toLLVM();
                             }
                         }, null));
                     }
+                    functionBlock.listOfArguments = argList;
                     functionBlock.listOfArgumentTypes = typeList;
                     LLVMContext.registerCounter++;
 
@@ -697,6 +701,10 @@ public class LLVMAST {
 
         for (var b : listOfBlocks) {
             LLVMContext.registerCounter = 0;
+            for (var arg : b.listOfArguments) {
+                arg.toString();
+            }
+            LLVMContext.registerCounter++;
             stringBuilder.append(b.toString());
         }
         return stringBuilder.toString();
