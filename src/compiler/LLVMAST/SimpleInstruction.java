@@ -27,7 +27,7 @@ public class SimpleInstruction implements Instruction {
     @Override
     public String toString() {
         if (rhs != null) {
-            return '\t' + lhs.toString() + " = " + rhs;
+            return '\t' + lhs.toString() + " = " + rhs + "\n";
         }
         StringBuilder sb = new StringBuilder();
         sb.append('\t');

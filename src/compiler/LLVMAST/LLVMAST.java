@@ -588,6 +588,7 @@ public class LLVMAST {
                 public Void visit(Function p, LLVMAST arg) {
                     LLVMContext.registerCounter = 0;
                     LLVMContext.currentlyUsedExpressions = new HashMap<>();
+                    LLVMContext.labelCounter = 0;
                     LLVMContext.addNewContext();
 
                     var functionBlock = new FunctionBlock();
