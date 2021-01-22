@@ -194,7 +194,7 @@ public class LLVMAST {
                 var cmpVar = new Register("i32");
                 arg.add(new CallInstruction(cmpVar, "strcmp", "i32", args));
                 var v = new Register("i1");
-                arg.add(new SimpleInstruction(v, "icmp i32 ", cmpVar, new IntValue(0), "i1"));
+                arg.add(new SimpleInstruction(v, "icmp eq i32", cmpVar, new IntValue(0), "i1"));
                 return v;
             } else {
                 var v = new Register("i1");
