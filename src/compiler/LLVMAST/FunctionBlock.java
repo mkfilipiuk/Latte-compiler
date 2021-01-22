@@ -10,7 +10,7 @@ public class FunctionBlock extends SimpleBlock {
     public String toString() {
         StringBuilder sb = new StringBuilder();
 
-        var name = this.name.equals("main") ? "main" : this.name + "_function";
+        var name = this.labelName.equals("main") ? "main" : this.labelName + "_function";
 
         sb.append("define " + functionType + " @" + name + " (" + String.join(",", listOfArgumentTypes) + ") {\n");
         for (var i : this) {

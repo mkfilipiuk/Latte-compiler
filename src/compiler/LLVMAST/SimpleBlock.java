@@ -5,23 +5,24 @@ import java.util.ArrayList;
 public class SimpleBlock extends ArrayList<Instruction> implements Instruction {
 
     public String labelName;
-    public String name;
     public Instruction terminalCommand;
+    public SimpleBlock next1, next2;
+    public ArrayList<SimpleBlock> previous;
 
     public SimpleBlock() {
         super();
     }
 
-    public SimpleBlock(String name) {
+    public SimpleBlock(String labelName) {
         this();
-        this.name = name;
+        this.labelName = labelName;
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        if (name != null) {
-            sb.append(name + ":\n");
+        if (labelName != null) {
+            sb.append(labelName + ":\n");
         }
 
         for (var i : this) {

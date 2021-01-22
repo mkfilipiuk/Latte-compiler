@@ -11,6 +11,7 @@ declare i32 @puts(i8*)
 declare i8* @malloc(i32)
 declare i32 @strlen(i8*)
 declare i8* @strcat(i8*, i8*)
+declare i32 @strcmp(i8*, i8*)
 declare void @exit(i32)
 
 define void @printInt_function(i32 %x) {
