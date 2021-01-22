@@ -373,7 +373,7 @@ public class LLVMAST {
             var labelIfBodyEnd = LLVMContext.getNewLabel("if_body_end");
             var labelFi = LLVMContext.getNewLabel("fi");
             var contextBefore = LLVMContext.contextStack.clone();
-            arg.add(new BranchInstruction(labelIfBody));
+            arg.add(new BranchInstruction(labelIfStart));
 
             var ifBlock = new SimpleBlock(labelIfStart);
             ifBlock.add(new BranchInstruction(expr, labelIfBody, labelFi));
