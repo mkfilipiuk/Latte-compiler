@@ -9,6 +9,7 @@ import java.util.Map;
 public class LLVMContext {
     public static Map<String, String> stringsToBeDeclared = new HashMap<String, String>();
     public static LLVMContextStack contextStack = new LLVMContextStack();
+    public static Map<Instruction, Register> currentlyUsedExpressions = new HashMap<>();
     public static int registerCounter = 1;
     public static int stringCounter = 0;
     public static int labelCounter = 0;

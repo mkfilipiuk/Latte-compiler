@@ -1,6 +1,8 @@
 package compiler.LLVMAST;
 
 
+import java.util.Objects;
+
 public class SimpleInstruction implements Instruction {
     public Register lhs;
     public String op, type;
@@ -43,5 +45,23 @@ public class SimpleInstruction implements Instruction {
         }
         sb.append("\n");
         return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SimpleInstruction that = (SimpleInstruction) o;
+        return
+            Objects.equals(op, that.op) &&
+                Objects.equals(type, that.type) &&
+                Objects.equals(arg1, that.arg1) &&
+                Objects.equals(arg2, that.arg2) &&
+                Objects.equals(rhs, that.rhs);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(op, type, arg1, arg2, rhs);
     }
 }
