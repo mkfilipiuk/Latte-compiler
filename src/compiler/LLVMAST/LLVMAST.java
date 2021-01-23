@@ -494,6 +494,12 @@ public class LLVMAST {
                     if (!registerAfter.equals(registerBefore)) {
                         var varType = LLVMContext.getType(v);
                         var newVar = new Register(varType);
+                        if (registerBefore instanceof LLVMString) {
+                            registerBefore = addIfAbsent((LLVMString) registerBefore, "i8*", fiBody);
+                        }
+                        if (registerAfter instanceof LLVMString) {
+                            registerAfter = addIfAbsent((LLVMString) registerAfter, "i8*", fiBody);
+                        }
                         fiBody.add(new PhiInstruction(newVar, varType, registerBefore, labelIfStart, registerAfter, labelIfBodyEnd));
                         LLVMContext.updateVariable(v, newVar);
                     }
@@ -564,6 +570,12 @@ public class LLVMAST {
                     if (!registerAfter.equals(registerBefore)) {
                         var varType = LLVMContext.getType(v);
                         var newVar = new Register(varType);
+                        if (registerBefore instanceof LLVMString) {
+                            registerBefore = addIfAbsent((LLVMString) registerBefore, "i8*", fiBody);
+                        }
+                        if (registerAfter instanceof LLVMString) {
+                            registerAfter = addIfAbsent((LLVMString) registerAfter, "i8*", fiBody);
+                        }
                         fiBody.add(new PhiInstruction(newVar, varType, registerBefore, labelIfBodyTrueEnd, registerAfter, labelIfBodyFalseEnd));
                         LLVMContext.updateVariable(v, newVar);
                     }
@@ -625,6 +637,9 @@ public class LLVMAST {
                         var newVar = new Register(varType);
                         LLVMContext.updateVariable(v, newVar);
                         variablesToBeUpdated.put(v, newVar);
+                        if (registerBefore instanceof LLVMString) {
+                            registerBefore = addIfAbsent((LLVMString) registerBefore, "i8*", phiBlock);
+                        }
                         phiBlock.add(new PhiInstruction(newVar, varType, registerBefore, labelEntry, null, labelBodyEnd));
                     }
                 }
@@ -659,7 +674,11 @@ public class LLVMAST {
             arg.add(endBlock);
 
             for (int i = 0; i < vars.size(); ++i) {
-                ((PhiInstruction) phiBlock.get(i)).value2 = LLVMContext.getVariable(vars.get(i));
+                var variable = LLVMContext.getVariable(vars.get(i));
+                if (variable instanceof LLVMString) {
+                    variable = addIfAbsent((LLVMString) variable, "i8*", phiBlock);
+                }
+                ((PhiInstruction) phiBlock.get(i)).value2 = variable;
             }
 
             for (var x : variablesToBeUpdated.keySet()) {
