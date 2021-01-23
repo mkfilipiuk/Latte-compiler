@@ -24,7 +24,7 @@ public class FunctionBlock extends SimpleBlock {
             sb.append(i.toString());
         }
 
-        if (!(this.get(this.size() - 1) instanceof ReturnInstruction || this.get(this.size() - 1) instanceof BranchInstruction)) {
+        if (this.size() == 0 || !(this.get(this.size() - 1) instanceof ReturnInstruction || this.get(this.size() - 1) instanceof BranchInstruction)) {
             if (functionType.equals("void")) {
                 sb.append("\tret void\n");
             } else {
