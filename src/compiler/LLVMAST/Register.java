@@ -5,15 +5,14 @@ public class Register implements Value {
     public String type;
 
     public Register(String type) {
-        registerNumber = LLVMContext.getNewVariable();
         this.type = type;
     }
 
     @Override
     public String toString() {
-//        if (registerNumber == null) {
-//            registerNumber = LLVMContext.getNewVariable();
-//        }
+        if (registerNumber == null) {
+            registerNumber = LLVMContext.getNewVariable();
+        }
         return "%" + registerNumber;
     }
 

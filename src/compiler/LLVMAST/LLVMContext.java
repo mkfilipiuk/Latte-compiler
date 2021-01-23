@@ -3,10 +3,8 @@ package compiler.LLVMAST;
 import latte.Absyn.Void;
 import latte.Absyn.*;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class LLVMContext {
     public static Map<String, String> stringsToBeDeclared = new HashMap<String, String>();
@@ -36,7 +34,9 @@ public class LLVMContext {
 
     public static String generateStrings() {
         StringBuilder sb = new StringBuilder();
-        for (String s : stringsToBeDeclared.keySet()) {
+        var l = stringsToBeDeclared.keySet().stream().collect(Collectors.toList());
+        l.sort(Comparator.comparing(x -> stringsToBeDeclared.get(x)));
+        for (String s : l) {
             sb.append(String.format("@%s = private unnamed_addr constant [%d x i8] c\"%s\\00\"", stringsToBeDeclared.get(s), s.length() + 1, s));
             sb.append("\n");
         }

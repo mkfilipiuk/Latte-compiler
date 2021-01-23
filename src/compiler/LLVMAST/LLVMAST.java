@@ -39,12 +39,12 @@ public class LLVMAST {
 
         @Override
         public Value visit(ELitTrue p, SimpleBlock arg) {
-            return new IntValue(1);
+            return new BooleanValue(true);
         }
 
         @Override
         public Value visit(ELitFalse p, SimpleBlock arg) {
-            return new IntValue(0);
+            return new BooleanValue(false);
         }
 
         @Override
@@ -96,12 +96,12 @@ public class LLVMAST {
         @Override
         public Value visit(Not p, SimpleBlock arg) {
             var x = p.expr_.accept(exprVisitor, arg);
-            if (x instanceof IntValue) {
-                var val = ((IntValue) x).value;
-                if (val == 1) {
-                    return new IntValue(0);
+            if (x instanceof BooleanValue) {
+                var val = ((BooleanValue) x).b;
+                if (val) {
+                    return new BooleanValue(false);
                 } else {
-                    return new IntValue(1);
+                    return new BooleanValue(true);
                 }
             } else {
                 var instruction = new SimpleInstruction(null, "add i1", new IntValue(-1), x, "i1");
@@ -221,22 +221,31 @@ public class LLVMAST {
             var x2 = p.expr_2.accept(exprVisitor, arg);
             if (x1 instanceof IntValue && x2 instanceof IntValue) {
                 if (p.relop_.equals(new EQU())) {
-                    return new IntValue(((IntValue) x1).value == ((IntValue) x2).value ? 1 : 0);
+                    return new BooleanValue(((IntValue) x1).value == ((IntValue) x2).value);
                 }
                 if (p.relop_.equals(new GE())) {
-                    return new IntValue(((IntValue) x1).value >= ((IntValue) x2).value ? 1 : 0);
+                    return new BooleanValue(((IntValue) x1).value >= ((IntValue) x2).value);
                 }
                 if (p.relop_.equals(new GTH())) {
-                    return new IntValue(((IntValue) x1).value > ((IntValue) x2).value ? 1 : 0);
+                    return new BooleanValue(((IntValue) x1).value > ((IntValue) x2).value);
                 }
                 if (p.relop_.equals(new LE())) {
-                    return new IntValue(((IntValue) x1).value <= ((IntValue) x2).value ? 1 : 0);
+                    return new BooleanValue(((IntValue) x1).value <= ((IntValue) x2).value);
                 }
                 if (p.relop_.equals(new LTH())) {
-                    return new IntValue(((IntValue) x1).value < ((IntValue) x2).value ? 1 : 0);
+                    return new BooleanValue(((IntValue) x1).value < ((IntValue) x2).value);
                 }
                 if (p.relop_.equals(new NE())) {
-                    return new IntValue(((IntValue) x1).value != ((IntValue) x2).value ? 1 : 0);
+                    return new BooleanValue(((IntValue) x1).value != ((IntValue) x2).value);
+                }
+                return null;
+            }
+            if (x1 instanceof BooleanValue && x2 instanceof BooleanValue) {
+                if (p.relop_.equals(new EQU())) {
+                    return new BooleanValue(((BooleanValue) x1).b == ((BooleanValue) x2).b);
+                }
+                if (p.relop_.equals(new NE())) {
+                    return new BooleanValue(((BooleanValue) x1).b != ((BooleanValue) x2).b);
                 }
                 return null;
             }
@@ -266,10 +275,10 @@ public class LLVMAST {
         @Override
         public Value visit(EAnd p, SimpleBlock arg) {
             var x1 = p.expr_1.accept(exprVisitor, arg);
-            if (x1 instanceof IntValue && ((IntValue) x1).value == 0) {
+            if (x1 instanceof BooleanValue && ((BooleanValue) x1).b == false) {
                 return x1;
             }
-            if (x1 instanceof IntValue && ((IntValue) x1).value == 1) {
+            if (x1 instanceof BooleanValue && ((BooleanValue) x1).b == true) {
                 return p.expr_2.accept(exprVisitor, arg);
             }
             var labelFirstSuccess = LLVMContext.getNewLabel("label_first_success");
@@ -316,10 +325,10 @@ public class LLVMAST {
         @Override
         public Value visit(EOr p, SimpleBlock arg) {
             var x1 = p.expr_1.accept(exprVisitor, arg);
-            if (x1 instanceof IntValue && ((IntValue) x1).value == 1) {
+            if (x1 instanceof BooleanValue && ((BooleanValue) x1).b == true) {
                 return x1;
             }
-            if (x1 instanceof IntValue && ((IntValue) x1).value == 0) {
+            if (x1 instanceof BooleanValue && ((BooleanValue) x1).b == false) {
                 return p.expr_2.accept(exprVisitor, arg);
             }
             var labelDoubleFailure = LLVMContext.getNewLabel("label_double_failure");
@@ -493,13 +502,17 @@ public class LLVMAST {
                     var registerAfter = LLVMContext.contextStack.stack.get(i).variableToRegister.get(v);
                     if (!registerAfter.equals(registerBefore)) {
                         var varType = LLVMContext.getType(v);
-                        var newVar = new Register(varType);
                         if (registerBefore instanceof LLVMString) {
-                            registerBefore = addIfAbsent((LLVMString) registerBefore, "i8*", fiBody);
+                            registerBefore = addIfAbsent((LLVMString) registerBefore, "i8*", ifBlock);
+                            var br = ifBlock.remove(ifBlock.size() - 2);
+                            ifBlock.add(br);
                         }
                         if (registerAfter instanceof LLVMString) {
-                            registerAfter = addIfAbsent((LLVMString) registerAfter, "i8*", fiBody);
+                            registerAfter = addIfAbsent((LLVMString) registerAfter, "i8*", ifBodyEndBlock);
+                            var br = ifBodyEndBlock.remove(ifBodyEndBlock.size() - 2);
+                            ifBodyEndBlock.add(br);
                         }
+                        var newVar = new Register(varType);
                         fiBody.add(new PhiInstruction(newVar, varType, registerBefore, labelIfStart, registerAfter, labelIfBodyEnd));
                         LLVMContext.updateVariable(v, newVar);
                     }
@@ -569,13 +582,17 @@ public class LLVMAST {
                     var registerAfter = LLVMContext.contextStack.stack.get(i).variableToRegister.get(v);
                     if (!registerAfter.equals(registerBefore)) {
                         var varType = LLVMContext.getType(v);
-                        var newVar = new Register(varType);
                         if (registerBefore instanceof LLVMString) {
-                            registerBefore = addIfAbsent((LLVMString) registerBefore, "i8*", fiBody);
+                            registerBefore = addIfAbsent((LLVMString) registerBefore, "i8*", ifBodyTrueEndBlock);
+                            var br = ifBodyTrueEndBlock.remove(ifBodyTrueEndBlock.size() - 2);
+                            ifBodyTrueEndBlock.add(br);
                         }
                         if (registerAfter instanceof LLVMString) {
-                            registerAfter = addIfAbsent((LLVMString) registerAfter, "i8*", fiBody);
+                            registerAfter = addIfAbsent((LLVMString) registerAfter, "i8*", ifBodyFalseEndBlock);
+                            var br = ifBodyFalseEndBlock.remove(ifBodyFalseEndBlock.size() - 2);
+                            ifBodyFalseEndBlock.add(br);
                         }
+                        var newVar = new Register(varType);
                         fiBody.add(new PhiInstruction(newVar, varType, registerBefore, labelIfBodyTrueEnd, registerAfter, labelIfBodyFalseEnd));
                         LLVMContext.updateVariable(v, newVar);
                     }
@@ -634,12 +651,14 @@ public class LLVMAST {
                     if (registerAfter != registerBefore) {
                         var varType = LLVMContext.getType(v);
                         vars.add(v);
+                        if (registerBefore instanceof LLVMString) {
+                            registerBefore = addIfAbsent((LLVMString) registerBefore, "i8*", entryBlock);
+                            var br = entryBlock.remove(entryBlock.size() - 2);
+                            entryBlock.add(br);
+                        }
                         var newVar = new Register(varType);
                         LLVMContext.updateVariable(v, newVar);
                         variablesToBeUpdated.put(v, newVar);
-                        if (registerBefore instanceof LLVMString) {
-                            registerBefore = addIfAbsent((LLVMString) registerBefore, "i8*", phiBlock);
-                        }
                         phiBlock.add(new PhiInstruction(newVar, varType, registerBefore, labelEntry, null, labelBodyEnd));
                     }
                 }
@@ -673,12 +692,17 @@ public class LLVMAST {
             var endBlock = new SimpleBlock(labelEnd);
             arg.add(endBlock);
 
+            var j = 0;
             for (int i = 0; i < vars.size(); ++i) {
                 var variable = LLVMContext.getVariable(vars.get(i));
                 if (variable instanceof LLVMString) {
                     variable = addIfAbsent((LLVMString) variable, "i8*", phiBlock);
+                    var br = phiBlock.remove(phiBlock.size() - 2);
+                    phiBlock.add(br);
                 }
-                ((PhiInstruction) phiBlock.get(i)).value2 = variable;
+                while (!(phiBlock.get(j) instanceof PhiInstruction)) ++j;
+                ((PhiInstruction) phiBlock.get(j)).value2 = variable;
+                ++j;
             }
 
             for (var x : variablesToBeUpdated.keySet()) {
@@ -863,6 +887,7 @@ public class LLVMAST {
                     arg.toString();
                 }
                 LLVMContext.registerCounter++;
+                b.assignRegisters();
                 stringBuilder2.append(b.toString());
             }
         }

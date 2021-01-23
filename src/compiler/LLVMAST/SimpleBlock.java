@@ -32,4 +32,24 @@ public class SimpleBlock extends ArrayList<Instruction> implements Instruction {
 
         return sb.toString();
     }
+
+    public void assignRegisters() {
+        for (var i : this) {
+            if (i instanceof CallInstruction && ((CallInstruction) i).resultLHSRegister != null) {
+                ((CallInstruction) i).resultLHSRegister.toString();
+            }
+            if (i instanceof PhiInstruction) {
+                ((PhiInstruction) i).register.toString();
+            }
+            if (i instanceof SimpleBlock) {
+                ((SimpleBlock) i).assignRegisters();
+            }
+            if (i instanceof SimpleInstruction) {
+                ((SimpleInstruction) i).lhs.toString();
+            }
+            if (i instanceof ReturnInstruction) {
+                ++LLVMContext.registerCounter;
+            }
+        }
+    }
 }
