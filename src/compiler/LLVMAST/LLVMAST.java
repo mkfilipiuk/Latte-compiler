@@ -11,58 +11,56 @@ import java.util.stream.Collectors;
 
 public class LLVMAST {
 
-    private final Expr.Visitor<Register, SimpleBlock> exprVisitor = new Expr.Visitor<Register, SimpleBlock>() {
+    private final Expr.Visitor<Value, SimpleBlock> exprVisitor = new Expr.Visitor<Value, SimpleBlock>() {
         @Override
-        public Register visit(ENewArray p, SimpleBlock arg) {
+        public Value visit(ENewArray p, SimpleBlock arg) {
             return null; //TODO
         }
 
         @Override
-        public Register visit(ENewObject p, SimpleBlock arg) {
+        public Value visit(ENewObject p, SimpleBlock arg) {
             return null; //TODO
         }
 
         @Override
-        public Register visit(EVar p, SimpleBlock arg) {
+        public Value visit(EVar p, SimpleBlock arg) {
             return LLVMContext.getVariable(getName(p.identp_));
         }
 
         @Override
-        public Register visit(EArrayElem p, SimpleBlock arg) {
+        public Value visit(EArrayElem p, SimpleBlock arg) {
             return null; //TODO
         }
 
         @Override
-        public Register visit(ELitInt p, SimpleBlock arg) {
-            var instruction = new SimpleInstruction(null, "add i32", new IntValue(0), new IntValue(p.integer_), "i32");
-            return addIfAbsent(instruction, p.type.toLLVM(), arg);
+        public Value visit(ELitInt p, SimpleBlock arg) {
+            return new IntValue(p.integer_);
         }
 
         @Override
-        public Register visit(ELitTrue p, SimpleBlock arg) {
-            var instruction = new SimpleInstruction(null, "add i1", new IntValue(0), new IntValue(1), "i1");
-            return addIfAbsent(instruction, p.type.toLLVM(), arg);
+        public Value visit(ELitTrue p, SimpleBlock arg) {
+            return new IntValue(1);
         }
 
         @Override
-        public Register visit(ELitFalse p, SimpleBlock arg) {
-            var instruction = new SimpleInstruction(null, "add i1", new IntValue(0), new IntValue(0), "i1");
-            return addIfAbsent(instruction, p.type.toLLVM(), arg);
+        public Value visit(ELitFalse p, SimpleBlock arg) {
+            return new IntValue(0);
         }
 
         @Override
-        public Register visit(EAttr p, SimpleBlock arg) {
+        public Value visit(EAttr p, SimpleBlock arg) {
             return null; //TODO
         }
 
         @Override
-        public Register visit(EMethod p, SimpleBlock arg) {
+        public Value visit(EMethod p, SimpleBlock arg) {
             return null; //TODO
         }
 
         @Override
-        public Register visit(EApp p, SimpleBlock arg) {
+        public Value visit(EApp p, SimpleBlock arg) {
             List<Value> listOfArgs = p.listexpr_.stream().map(x -> x.accept(exprVisitor, arg)).collect(Collectors.toList());
+            listOfArgs = listOfArgs.stream().map(x -> x instanceof LLVMString ? addIfAbsent((LLVMString) x, "i8*", arg) : x).collect(Collectors.toList());
 
             if (LLVMContext.getType(getName(p.identp_) + "_function").equals("void")) {
                 arg.add(new CallInstruction(null, getName(p.identp_) + "_function", "void", listOfArgs));
@@ -75,59 +73,93 @@ public class LLVMAST {
         }
 
         @Override
-        public Register visit(ECast p, SimpleBlock arg) {
+        public Value visit(ECast p, SimpleBlock arg) {
             return null; //TODO
         }
 
         @Override
-        public Register visit(EString p, SimpleBlock arg) {
-            LLVMContext.addString(p.string_);
-            var instruction = new SimpleInstruction(null, String.format("getelementptr [%d x i8], [%d x i8]* @%s, i32 0, i32 0", p.string_.length() + 1, p.string_.length() + 1, LLVMContext.stringsToBeDeclared.get(p.string_)), null, null, "i8*");
-            return addIfAbsent(instruction, p.type.toLLVM(), arg);
+        public Value visit(EString p, SimpleBlock arg) {
+            return new LLVMString(p.string_);
         }
 
         @Override
-        public Register visit(Neg p, SimpleBlock arg) {
+        public Value visit(Neg p, SimpleBlock arg) {
             var x = p.expr_.accept(exprVisitor, arg);
-            var instruction = new SimpleInstruction(null, "mul i32", new IntValue(-1), x, "i32");
-            return addIfAbsent(instruction, p.type.toLLVM(), arg);
+            if (x instanceof IntValue) {
+                return new IntValue(((IntValue) x).value * -1);
+            } else {
+                var instruction = new SimpleInstruction(null, "mul i32", new IntValue(-1), x, "i32");
+                return addIfAbsent(instruction, p.type.toLLVM(), arg);
+            }
         }
 
         @Override
-        public Register visit(Not p, SimpleBlock arg) {
+        public Value visit(Not p, SimpleBlock arg) {
             var x = p.expr_.accept(exprVisitor, arg);
-            var instruction = new SimpleInstruction(null, "add i1", new IntValue(-1), x, "i1");
-            return addIfAbsent(instruction, p.type.toLLVM(), arg);
+            if (x instanceof IntValue) {
+                var val = ((IntValue) x).value;
+                if (val == 1) {
+                    return new IntValue(0);
+                } else {
+                    return new IntValue(1);
+                }
+            } else {
+                var instruction = new SimpleInstruction(null, "add i1", new IntValue(-1), x, "i1");
+                return addIfAbsent(instruction, p.type.toLLVM(), arg);
+            }
         }
 
         @Override
-        public Register visit(EMul p, SimpleBlock arg) {
+        public Value visit(EMul p, SimpleBlock arg) {
             var x1 = p.expr_1.accept(exprVisitor, arg);
             var x2 = p.expr_2.accept(exprVisitor, arg);
-            var instruction = p.mulop_.accept(new MulOp.Visitor<SimpleInstruction, Void>() {
+            var instruction = p.mulop_.accept(new MulOp.Visitor<String, Void>() {
                 @Override
-                public SimpleInstruction visit(Times p, Void arg) {
-                    return new SimpleInstruction(null, "mul i32", x1, x2, "i32");
+                public String visit(Times p, Void arg) {
+                    return "mul i32";
                 }
 
                 @Override
-                public SimpleInstruction visit(Div p, Void arg) {
-                    return new SimpleInstruction(null, "sdiv i32", x1, x2, "i32");
+                public String visit(Div p, Void arg) {
+                    return "sdiv i32";
                 }
 
                 @Override
-                public SimpleInstruction visit(Mod p, Void arg) {
-                    return new SimpleInstruction(null, "srem i32", x1, x2, "i32");
+                public String visit(Mod p, Void arg) {
+                    return "srem i32";
                 }
             }, null);
-            return addIfAbsent(instruction, p.type.toLLVM(), arg);
+            if (x1 instanceof IntValue && x2 instanceof IntValue) {
+                switch (instruction) {
+                    case "mul i32":
+                        return new IntValue(((IntValue) x1).value * ((IntValue) x2).value);
+                    case "sdiv i32":
+                        return new IntValue(((IntValue) x1).value / ((IntValue) x2).value);
+                    case "srem i32":
+                        return new IntValue(((IntValue) x1).value % ((IntValue) x2).value);
+                }
+            } else {
+                var i = new SimpleInstruction(null, instruction, x1, x2, "i32");
+                return addIfAbsent(i, p.type.toLLVM(), arg);
+            }
+            return null;
         }
 
         @Override
-        public Register visit(EAdd p, SimpleBlock arg) {
+        public Value visit(EAdd p, SimpleBlock arg) {
             var x1 = p.expr_1.accept(exprVisitor, arg);
             var x2 = p.expr_2.accept(exprVisitor, arg);
             if (p.expr_1.type.equals(new Primitive(new Str()))) {
+                if (x1 instanceof LLVMString && x2 instanceof LLVMString) {
+                    return new LLVMString(((LLVMString) x1).string + ((LLVMString) x2).string);
+                }
+                if (x1 instanceof LLVMString) {
+                    x1 = addIfAbsent((LLVMString) x1, "i8*", arg);
+                }
+                if (x2 instanceof LLVMString) {
+                    x2 = addIfAbsent((LLVMString) x2, "i8*", arg);
+                }
+
                 var length1 = new Register("i32");
                 var args = new ArrayList<Value>();
                 args.add(x1);
@@ -164,21 +196,60 @@ public class LLVMAST {
 
                 return secondString;
             } else {
-                SimpleInstruction instruction;
-                if (p.addop_ instanceof Plus) {
-                    instruction = new SimpleInstruction(null, "add i32", x1, x2, "i32");
+                if (x1 instanceof IntValue && x2 instanceof IntValue) {
+                    if (p.addop_ instanceof Plus) {
+                        return new IntValue(((IntValue) x1).value + ((IntValue) x2).value);
+                    } else {
+                        return new IntValue(((IntValue) x1).value - ((IntValue) x2).value);
+                    }
+
                 } else {
-                    instruction = new SimpleInstruction(null, "sub i32", x1, x2, "i32");
+                    SimpleInstruction instruction;
+                    if (p.addop_ instanceof Plus) {
+                        instruction = new SimpleInstruction(null, "add i32", x1, x2, "i32");
+                    } else {
+                        instruction = new SimpleInstruction(null, "sub i32", x1, x2, "i32");
+                    }
+                    return addIfAbsent(instruction, p.type.toLLVM(), arg);
                 }
-                return addIfAbsent(instruction, p.type.toLLVM(), arg);
             }
         }
 
         @Override
-        public Register visit(ERel p, SimpleBlock arg) {
+        public Value visit(ERel p, SimpleBlock arg) {
             var x1 = p.expr_1.accept(exprVisitor, arg);
             var x2 = p.expr_2.accept(exprVisitor, arg);
+            if (x1 instanceof IntValue && x2 instanceof IntValue) {
+                if (p.relop_.equals(new EQU())) {
+                    return new IntValue(((IntValue) x1).value == ((IntValue) x2).value ? 1 : 0);
+                }
+                if (p.relop_.equals(new GE())) {
+                    return new IntValue(((IntValue) x1).value >= ((IntValue) x2).value ? 1 : 0);
+                }
+                if (p.relop_.equals(new GTH())) {
+                    return new IntValue(((IntValue) x1).value > ((IntValue) x2).value ? 1 : 0);
+                }
+                if (p.relop_.equals(new LE())) {
+                    return new IntValue(((IntValue) x1).value <= ((IntValue) x2).value ? 1 : 0);
+                }
+                if (p.relop_.equals(new LTH())) {
+                    return new IntValue(((IntValue) x1).value < ((IntValue) x2).value ? 1 : 0);
+                }
+                if (p.relop_.equals(new NE())) {
+                    return new IntValue(((IntValue) x1).value != ((IntValue) x2).value ? 1 : 0);
+                }
+                return null;
+            }
             if (p.expr_1.type.equals(new Primitive(new Str()))) {
+                if (x1 instanceof LLVMString && x2 instanceof LLVMString) {
+                    return new IntValue(((LLVMString) x1).string.equals(((LLVMString) x2).string) ? 1 : 0);
+                }
+                if (x1 instanceof LLVMString) {
+                    x1 = addIfAbsent((LLVMString) x1, "i8*", arg);
+                }
+                if (x2 instanceof LLVMString) {
+                    x2 = addIfAbsent((LLVMString) x2, "i8*", arg);
+                }
                 var args = new ArrayList<Value>();
                 args.add(x1);
                 args.add(x2);
@@ -193,8 +264,14 @@ public class LLVMAST {
         }
 
         @Override
-        public Register visit(EAnd p, SimpleBlock arg) {
+        public Value visit(EAnd p, SimpleBlock arg) {
             var x1 = p.expr_1.accept(exprVisitor, arg);
+            if (x1 instanceof IntValue && ((IntValue) x1).value == 0) {
+                return x1;
+            }
+            if (x1 instanceof IntValue && ((IntValue) x1).value == 1) {
+                return p.expr_2.accept(exprVisitor, arg);
+            }
             var labelFirstSuccess = LLVMContext.getNewLabel("label_first_success");
             var successBlock = new SimpleBlock(labelFirstSuccess);
             var labelDoubleSuccess = LLVMContext.getNewLabel("label_double_success");
@@ -237,8 +314,14 @@ public class LLVMAST {
         }
 
         @Override
-        public Register visit(EOr p, SimpleBlock arg) {
+        public Value visit(EOr p, SimpleBlock arg) {
             var x1 = p.expr_1.accept(exprVisitor, arg);
+            if (x1 instanceof IntValue && ((IntValue) x1).value == 1) {
+                return x1;
+            }
+            if (x1 instanceof IntValue && ((IntValue) x1).value == 0) {
+                return p.expr_2.accept(exprVisitor, arg);
+            }
             var labelDoubleFailure = LLVMContext.getNewLabel("label_double_failure");
             var labelFirstFailure = LLVMContext.getNewLabel("label_first_failure");
             var labelSuccess = LLVMContext.getNewLabel("label_success");
@@ -292,9 +375,12 @@ public class LLVMAST {
                 newVar.accept(new Item.Visitor<Void, SimpleBlock>() {
                     @Override
                     public Void visit(NoInit p, SimpleBlock arg) {
-                        var instruction = type.getDefaultLLVMValue(null);
-                        var register = addIfAbsent(instruction, type.toLLVM(), arg);
-                        LLVMContext.addVariable(type, getName(p.identp_), register);
+                        if (type.equals(new Primitive(new Str()))) {
+                            var value = new LLVMString("");
+                            LLVMContext.addVariable(type, getName(p.identp_), value);
+                        } else {
+                            LLVMContext.addVariable(type, getName(p.identp_), type.getDefaultLLVMValue());
+                        }
                         return null;
                     }
 
@@ -328,23 +414,34 @@ public class LLVMAST {
 
         @Override
         public Void visit(Incr p, SimpleBlock arg) {
-            var instruction = new SimpleInstruction(null, "add i32", new IntValue(1), LLVMContext.getVariable(getName(p.identp_)), "i32");
-            var v = addIfAbsent(instruction, "i32", arg);
-            LLVMContext.updateVariable(getName(p.identp_), v);
+            if (LLVMContext.getVariable(getName(p.identp_)) instanceof IntValue) {
+                LLVMContext.updateVariable(getName(p.identp_), new IntValue(((IntValue) LLVMContext.getVariable(getName(p.identp_))).value + 1));
+            } else {
+                var instruction = new SimpleInstruction(null, "add i32", new IntValue(1), LLVMContext.getVariable(getName(p.identp_)), "i32");
+                var v = addIfAbsent(instruction, "i32", arg);
+                LLVMContext.updateVariable(getName(p.identp_), v);
+            }
             return null;
         }
 
         @Override
         public Void visit(Decr p, SimpleBlock arg) {
-            var instruction = new SimpleInstruction(null, "add i32", new IntValue(-1), LLVMContext.getVariable(getName(p.identp_)), "i32");
-            var v = addIfAbsent(instruction, "i32", arg);
-            LLVMContext.updateVariable(getName(p.identp_), v);
+            if (LLVMContext.getVariable(getName(p.identp_)) instanceof IntValue) {
+                LLVMContext.updateVariable(getName(p.identp_), new IntValue(((IntValue) LLVMContext.getVariable(getName(p.identp_))).value - 1));
+            } else {
+                var instruction = new SimpleInstruction(null, "add i32", new IntValue(-1), LLVMContext.getVariable(getName(p.identp_)), "i32");
+                var v = addIfAbsent(instruction, "i32", arg);
+                LLVMContext.updateVariable(getName(p.identp_), v);
+            }
             return null;
         }
 
         @Override
         public Void visit(Ret p, SimpleBlock arg) {
             var e = p.expr_.accept(exprVisitor, arg);
+            if (e instanceof LLVMString) {
+                e = addIfAbsent((LLVMString) e, "i8*", arg);
+            }
             arg.add(new ReturnInstruction(p.expr_.type.toLLVM(), e));
             return null;
         }
@@ -358,6 +455,12 @@ public class LLVMAST {
         @Override
         public Void visit(Cond p, SimpleBlock arg) {
             var expr = p.expr_.accept(exprVisitor, arg);
+            if (expr instanceof IntValue) {
+                if (((IntValue) expr).value == 1) {
+                    p.stmt_.accept(stmtVisitor, arg);
+                }
+                return null;
+            }
             var labelIfStart = LLVMContext.getNewLabel("if_start");
             var labelIfBody = LLVMContext.getNewLabel("if_body");
             var labelIfBodyEnd = LLVMContext.getNewLabel("if_body_end");
@@ -405,6 +508,14 @@ public class LLVMAST {
         @Override
         public Void visit(CondElse p, SimpleBlock arg) {
             var expr = p.expr_.accept(exprVisitor, arg);
+            if (expr instanceof IntValue) {
+                if (((IntValue) expr).value == 1) {
+                    p.stmt_1.accept(stmtVisitor, arg);
+                } else {
+                    p.stmt_2.accept(stmtVisitor, arg);
+                }
+                return null;
+            }
             var labelIfStart = LLVMContext.getNewLabel("if_start");
             var labelIfBodyTrue = LLVMContext.getNewLabel("if_body_true");
             var labelIfBodyTrueEnd = LLVMContext.getNewLabel("if_body_true_end");
@@ -565,7 +676,7 @@ public class LLVMAST {
 
         @Override
         public Void visit(SExp p, SimpleBlock arg) {
-            var exp = p.expr_.accept(exprVisitor, arg);
+            p.expr_.accept(exprVisitor, arg);
             return null;
         }
     };
@@ -591,8 +702,7 @@ public class LLVMAST {
                     LLVMContext.labelCounter = 0;
                     LLVMContext.addNewContext();
 
-                    var functionBlock = new FunctionBlock();
-                    functionBlock.labelName = getName(p.identp_);
+                    var functionBlock = new FunctionBlock(getName(p.identp_));
                     functionBlock.functionType = p.type_.toLLVM();
 
                     var typeList = new ArrayList<String>();
@@ -725,19 +835,23 @@ public class LLVMAST {
         stringBuilder.append("declare i8* @malloc(i32)\n");
         stringBuilder.append("declare i32 @strlen(i8*)\n");
         stringBuilder.append("declare i8* @strcat(i8*, i8*)\n");
-        stringBuilder.append("@empty_string   = internal constant [1 x i8] c\"\\00\"\n");
 
+        StringBuilder stringBuilder2 = new StringBuilder();
+        for (var b : listOfBlocks) {
+            if (LLVMContext.usedFunctions.contains(b.name)) {
+                LLVMContext.registerCounter = 0;
+                for (var arg : b.listOfArguments) {
+                    arg.toString();
+                }
+                LLVMContext.registerCounter++;
+                stringBuilder2.append(b.toString());
+            }
+        }
 
         stringBuilder.append(LLVMContext.generateStrings());
 
-        for (var b : listOfBlocks) {
-            LLVMContext.registerCounter = 0;
-            for (var arg : b.listOfArguments) {
-                arg.toString();
-            }
-            LLVMContext.registerCounter++;
-            stringBuilder.append(b.toString());
-        }
+        stringBuilder.append(stringBuilder2.toString());
+
         return stringBuilder.toString();
     }
 }

@@ -4,7 +4,9 @@ import latte.Absyn.Void;
 import latte.Absyn.*;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class LLVMContext {
     public static Map<String, String> stringsToBeDeclared = new HashMap<String, String>();
@@ -13,6 +15,7 @@ public class LLVMContext {
     public static int registerCounter = 1;
     public static int stringCounter = 0;
     public static int labelCounter = 0;
+    public static Set<String> usedFunctions = new HashSet<>();
 
     static {
         addVariable(new Fun(new Primitive(new Void()), null), "printString", null);
@@ -20,6 +23,8 @@ public class LLVMContext {
         addVariable(new Fun(new Primitive(new Int()), null), "readInt", null);
         addVariable(new Fun(new Primitive(new Str()), null), "readString", null);
         addVariable(new Fun(new Primitive(new Void()), null), "error", null);
+        usedFunctions.add("main");
+        stringsToBeDeclared.put("", "empty_string");
     }
 
     public static void addString(String string_) {
@@ -38,7 +43,7 @@ public class LLVMContext {
         return sb.toString();
     }
 
-    public static Register getVariable(String name) {
+    public static Value getVariable(String name) {
         for (var i = contextStack.stack.size() - 1; i >= 0; --i) {
             if (contextStack.stack.get(i).variableToRegister.containsKey(name)) {
                 return contextStack.stack.get(i).variableToRegister.get(name);
@@ -53,20 +58,20 @@ public class LLVMContext {
         return v;
     }
 
-    public static void addVariable(Type type, String name, Register register) {
+    public static void addVariable(Type type, String name, Value value) {
         if (type instanceof Fun) {
             contextStack.stack.get(contextStack.stack.size() - 1).variableToRegister.put(name, new FunctionRegister(type.toLLVM(), name));
             contextStack.stack.get(contextStack.stack.size() - 1).variableToType.put(name + "_function", type.toLLVM());
         } else {
-            contextStack.stack.get(contextStack.stack.size() - 1).variableToRegister.put(name, register);
+            contextStack.stack.get(contextStack.stack.size() - 1).variableToRegister.put(name, value);
             contextStack.stack.get(contextStack.stack.size() - 1).variableToType.put(name, type.toLLVM());
         }
     }
 
-    public static void updateVariable(String name, Register register) {
+    public static void updateVariable(String name, Value value) {
         for (var i = contextStack.stack.size() - 1; i >= 0; --i) {
             if (contextStack.stack.get(i).variableToRegister.containsKey(name)) {
-                contextStack.stack.get(i).variableToRegister.put(name, register);
+                contextStack.stack.get(i).variableToRegister.put(name, value);
                 return;
             }
         }

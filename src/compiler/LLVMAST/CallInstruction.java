@@ -14,6 +14,8 @@ public class CallInstruction implements Instruction {
         this.functionName = functionName;
         this.functionType = functionType;
         this.listOfArguments = listOfArguments;
+
+        LLVMContext.usedFunctions.add(functionName);
     }
 
     @Override
