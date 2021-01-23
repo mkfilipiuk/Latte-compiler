@@ -251,7 +251,7 @@ public class LLVMAST {
             }
             if (p.expr_1.type.equals(new Primitive(new Str()))) {
                 if (x1 instanceof LLVMString && x2 instanceof LLVMString) {
-                    return new IntValue(((LLVMString) x1).string.equals(((LLVMString) x2).string) ? 1 : 0);
+                    return new BooleanValue(((LLVMString) x1).string.equals(((LLVMString) x2).string));
                 }
                 if (x1 instanceof LLVMString) {
                     x1 = addIfAbsent((LLVMString) x1, "i8*", arg);
@@ -317,7 +317,7 @@ public class LLVMAST {
             LLVMContext.currentlyUsedExpressions = currentlyUsedExpressions;
 
             var v = new Register("i1");
-            doneBlock.add(new PhiInstruction(v, "i1", new IntValue(1), labelDoubleSuccess, new IntValue(0), labelFailure));
+            doneBlock.add(new PhiInstruction(v, "i1", new BooleanValue(true), labelDoubleSuccess, new BooleanValue(false), labelFailure));
             arg.add(doneBlock);
             return v;
         }
@@ -356,7 +356,7 @@ public class LLVMAST {
 
             var doneBlock = new SimpleBlock(labelDone);
             var v = new Register("i1");
-            doneBlock.add(new PhiInstruction(v, "i1", new IntValue(1), labelSuccess, new IntValue(0), labelDoubleFailure));
+            doneBlock.add(new PhiInstruction(v, "i1", new BooleanValue(true), labelSuccess, new BooleanValue(false), labelDoubleFailure));
             arg.add(doneBlock);
             return v;
         }
@@ -464,8 +464,8 @@ public class LLVMAST {
         @Override
         public Void visit(Cond p, SimpleBlock arg) {
             var expr = p.expr_.accept(exprVisitor, arg);
-            if (expr instanceof IntValue) {
-                if (((IntValue) expr).value == 1) {
+            if (expr instanceof BooleanValue) {
+                if (((BooleanValue) expr).b) {
                     p.stmt_.accept(stmtVisitor, arg);
                 }
                 return null;
@@ -527,8 +527,8 @@ public class LLVMAST {
         @Override
         public Void visit(CondElse p, SimpleBlock arg) {
             var expr = p.expr_.accept(exprVisitor, arg);
-            if (expr instanceof IntValue) {
-                if (((IntValue) expr).value == 1) {
+            if (expr instanceof BooleanValue) {
+                if (((BooleanValue) expr).b) {
                     p.stmt_1.accept(stmtVisitor, arg);
                 } else {
                     p.stmt_2.accept(stmtVisitor, arg);
